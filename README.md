@@ -4,3 +4,5 @@ You'll need to insert your API-KEY from Coinstats in Api_Key.txt . You can get o
 
 The required modules have been included in requirements.txt so to install them just :
 "pip install -r requirements.txt" in your environment.
+
+SEE FETCHV4.PY for the magic 

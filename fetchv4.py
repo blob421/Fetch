@@ -62,7 +62,7 @@ def fetch_marketdata():
                            fear_greed_value INTEGER,
                            fear_greed_name VARCHAR(20))''')
             
-        cursor.execute('CREATE INDEX idx_market_data_date ON market_data(date);')
+        cursor.execute('CREATE INDEX IF NOT EXISTS idx_market_data_date ON market_data(date);')
        
         data = response
             
@@ -149,7 +149,7 @@ def fetch_bitcoin():
                       priceChange1d DECIMAL(20, 2),
                       priceChange1w DECIMAL(20, 2))''')
       
-      cursor.execute('CREATE INDEX idx_btc_data_date ON bitcoin_data(date);')
+      cursor.execute('CREATE INDEX IF NOT EXISTS idx_btc_data_date ON bitcoin_data(date);')
 
  except json.JSONDecodeError as e:
     print(f'Json decode error: {e}')
@@ -234,7 +234,7 @@ def fetch_eth():
                       priceChange1d DECIMAL(20, 2),
                       priceChange1w DECIMAL(20, 2))''')
  
-      cursor.execute('CREATE INDEX idx_eth_data_date ON eth_data(date);')
+      cursor.execute('CREATE INDEX IF NOT EXISTS idx_eth_data_date ON eth_data(date);')
 
  
  except json.JSONDecodeError as e:

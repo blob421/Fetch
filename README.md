@@ -7,4 +7,4 @@ The required modules have been included in requirements.txt , so to install them
 
 Copy the repository, install the dependencies and see the magic unfold by launching fetchv4.py
 All data will be stored in a database as a time-series database named crypto_datav2.sqlite 
-Feel free to train a model of of it 
+Feel free to train a model out of it 

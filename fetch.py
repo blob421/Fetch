@@ -132,10 +132,13 @@ def fetch_marketdata():
    btcDominance, marketCapChange, volumeChange , btcDominanceChange, fng_value, fng_name)])
         
    conn.commit()
-   cursor.close()
+   
        
  except sqlite3.Error as e:
            print(f'Database insert error: {e}')
+ 
+ finally:
+   cursor.close()
  
 
 def fetch_bitcoin():    
@@ -202,7 +205,7 @@ def fetch_bitcoin():
  
  date = date_time
       
-      
+   
  try:
    cursor.executemany('''INSERT INTO bitcoin_data (date, price, volume, marketCap,
     availableSupply, totalSupply, fullyDilutedValuation, priceChange1h,
@@ -212,11 +215,13 @@ def fetch_bitcoin():
     priceChange1w)])
                        
    conn.commit()
-   cursor.close()
+   
       
  except sqlite3.Error as e:
          print(f'Database insert error: {e}')
  
+ finally:
+   cursor.close()
  
 def fetch_eth():
  
@@ -295,10 +300,13 @@ def fetch_eth():
     priceChange1w)])
                        
    conn.commit()
-   cursor.close()
       
  except sqlite3.Error as e:
          print(f'Database insert error: {e}')
+ 
+ finally:
+   cursor.close()
+
 
 ## Main program
 

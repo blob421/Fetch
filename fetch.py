@@ -12,9 +12,10 @@ with open('ApiKey.txt', 'r') as file:   #Reads api-key from file
 
 
 async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
-   """Main function to fetch data, allows for retry when an error occurs
-      Returns a parsed json response
+   """Main function responsible for fetching data. Includes a retry mechanism 
+      to handle errors and returns a parsed JSON response as a dictionary.
    """
+   
    for attempt in range(max_retries):
      
      try:
@@ -33,8 +34,9 @@ async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
 
 
 async def fetch_sentiment():
- """Function that fetches sentiment data and stores it globaly
-    Returns None in case of failure 
+ """Function that fetches sentiment data and stores it globally.
+    fng_name and fng_value will be set to "None" in case of failure
+    and the user will be notified. 
  """
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
@@ -71,8 +73,8 @@ async def fetch_sentiment():
 
 
 async def fetch_marketdata():
- """Function that fetches market data, writes to the database
-    In case of failure , writes None in the database
+ """Fetches market data and writes it to the database.
+    Values will be set to "None" in case of failure and the user will be notified.
  """
  global fng_name, fng_value
  
@@ -151,8 +153,8 @@ async def fetch_marketdata():
 
 
 async def fetch_bitcoin():    
- """Function that fetches bitcoin data, writes to the database
-    In case of failure , writes None in the database
+ """Fetches bitcoin data and writes it to the database.
+    Values will be set to "None" in case of failure and the user will be notified.
  """
  price = None
  volume = None
@@ -237,8 +239,8 @@ async def fetch_bitcoin():
 
 
 async def fetch_eth():
- """Function that fetches eth data, writes to the database
-    In case of failure , writes None in the database
+ """Fetches eth data and writes it to the database.
+    Values will be set to "None" in case of failure and the user will be notified.
  """
  price = None
  volume = None
@@ -325,7 +327,7 @@ async def fetch_eth():
 
 
 def calculate_time():
- """Calculates the time left until 20:02 (until refesh), returns seconds"""
+ """Calculates the time left until 20:02 (until Alternative updates), returns seconds"""
  time_now = datetime.datetime.now()
  target_time = datetime.datetime.now().replace(hour=20, minute=2)
  

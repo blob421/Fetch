@@ -12,7 +12,9 @@ with open('ApiKey.txt', 'r') as file:   #Reads api-key from file
 
 
 async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
-   """Main function to fetch data, allows retry when an error occurs"""
+   """Main function to fetch data, allows for retry when an error occurs
+      Returns a parsed json response
+   """
    for attempt in range(max_retries):
      
      try:
@@ -31,7 +33,9 @@ async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
 
 
 async def fetch_sentiment():
- """Function that fetches sentiment data and stores it globaly, default is None"""
+ """Function that fetches sentiment data and stores it globaly
+    Returns None in case of failure 
+ """
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
  fng_name, fng_value = None, None
@@ -67,7 +71,9 @@ async def fetch_sentiment():
 
 
 async def fetch_marketdata():
- """Function that fetches market data, writes to the database, default is None"""
+ """Function that fetches market data, writes to the database
+    In case of failure , writes None in the database
+ """
  global fng_name, fng_value
  
  marketCap = None
@@ -145,7 +151,9 @@ async def fetch_marketdata():
 
 
 async def fetch_bitcoin():    
- """Function that fetches bitcoin data, writes to the database, default is None"""
+ """Function that fetches bitcoin data, writes to the database
+    In case of failure , writes None in the database
+ """
  price = None
  volume = None
  marketCap = None
@@ -229,7 +237,9 @@ async def fetch_bitcoin():
 
 
 async def fetch_eth():
- """Function that fetches eth data, writes to the database, default None"""
+ """Function that fetches eth data, writes to the database
+    In case of failure , writes None in the database
+ """
  price = None
  volume = None
  marketCap = None
@@ -315,7 +325,7 @@ async def fetch_eth():
 
 
 def calculate_time():
- """Calculates time until 20:02, returns seconds"""
+ """Calculates the time left until 20:02 (until refesh), returns seconds"""
  time_now = datetime.datetime.now()
  target_time = datetime.datetime.now().replace(hour=20, minute=2)
  
@@ -327,7 +337,7 @@ def calculate_time():
 
 ## Main program
 
-fng_value = None    #Initializing to store updated global values from fetch_sentiment later
+fng_value = None    #Initializing global sentiment, market_data will use it 
 fng_name = None
 
 

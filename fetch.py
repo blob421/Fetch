@@ -3,9 +3,8 @@ import json
 import datetime
 import asyncio
 import aiohttp
-#import logging
 
-#logging.basicConfig(filename='fetch.log', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 with open('ApiKey.txt', 'r') as file:
     headers = json.load(file)
@@ -35,7 +34,7 @@ async def fetch_sentiment():
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
  fng_name, fng_value = None, None
- #logging.info(f"{date_time}: fetch_sentiment ran")
+ 
  url2 = 'https://api.alternative.me/fng/?limit=2&format=json'
 
  try:
@@ -341,10 +340,10 @@ async def daily_sentiment():
       
 async def fetch_stack():
    while True:
-      await fetch_marketdata()
-      await fetch_bitcoin()
-      await fetch_eth()
-      await asyncio.sleep(300)
+     asyncio.create_task(fetch_marketdata())
+     asyncio.create_task(fetch_bitcoin())
+     asyncio.create_task(fetch_eth())
+     await asyncio.sleep(300)
 
 async def main():
    await fetch_sentiment()

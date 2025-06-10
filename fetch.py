@@ -6,18 +6,18 @@ import aiohttp
 
 
 
-with open('ApiKey.txt', 'r') as file:
+with open('ApiKey.txt', 'r') as file:   #Reads api-key from file 
     headers = json.load(file)
 
 
+
 async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
-   
+   """Main function to fetch data, allows retry when an error occurs"""
    for attempt in range(max_retries):
      
      try:
         async with aiohttp.ClientSession() as session:
            async with session.get(url, headers=headers) as response:
-      
              response.raise_for_status()
              return await response.json()
     
@@ -29,18 +29,19 @@ async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
    return None 
 
 
+
 async def fetch_sentiment():
- 
+ """Function that fetches sentiment data and stores it globaly, default is None"""
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
  fng_name, fng_value = None, None
- 
+
  url2 = 'https://api.alternative.me/fng/?limit=2&format=json'
 
  try:
       
       response2 = await fetch_data_with_retry(url2, None)
-        
+
       if response2 and "data" in response2 and response2["data"]:
          fng_value = response2['data'][0]['value']
          fng_name = response2['data'][0]['value_classification']
@@ -64,7 +65,9 @@ async def fetch_sentiment():
        return
        
 
+
 async def fetch_marketdata():
+ """Function that fetches market data, writes to the database, default is None"""
  global fng_name, fng_value
  
  marketCap = None
@@ -124,7 +127,6 @@ async def fetch_marketdata():
     pass
         
       
-      
  try:
    cursor.executemany('''INSERT INTO market_data (date, marketCap, volume, btcDominance,
    marketCapChange, volumeChange, btcDominanceChange, fear_greed_value , fear_greed_name)
@@ -141,8 +143,9 @@ async def fetch_marketdata():
    cursor.close()
  
 
+
 async def fetch_bitcoin():    
- 
+ """Function that fetches bitcoin data, writes to the database, default is None"""
  price = None
  volume = None
  marketCap = None
@@ -223,8 +226,10 @@ async def fetch_bitcoin():
  finally:
    cursor.close()
  
+
+
 async def fetch_eth():
- 
+ """Function that fetches eth data, writes to the database, default None"""
  price = None
  volume = None
  marketCap = None
@@ -309,12 +314,12 @@ async def fetch_eth():
 
 
 
-# Calculates time from sentiment refresh (usually at 20:00)
 def calculate_time():
+ """Calculates time until 20:02, returns seconds"""
  time_now = datetime.datetime.now()
  target_time = datetime.datetime.now().replace(hour=20, minute=2)
  
- if time_now > target_time:
+ if time_now > target_time:                   
     target_time += datetime.timedelta(days=1)
  
  return (target_time - time_now).total_seconds()
@@ -322,30 +327,36 @@ def calculate_time():
 
 ## Main program
 
-fng_value = None
+fng_value = None    #Initializing to store updated global values from fetch_sentiment later
 fng_name = None
 
 
 async def hourly_sentiment():
+   """Fetches sentiment data every hours"""
    while True:
       await asyncio.sleep(3600)
       await fetch_sentiment()
 
+
 async def daily_sentiment():
+   """Fetches sentiment data every day at 20:02"""
    while True:
       sleeptime = calculate_time()
       await asyncio.sleep(sleeptime)
       await fetch_sentiment()
-      calculate_time()
+      
       
 async def fetch_stack():
+   """Concurrently fetches data on btc, eth and the market"""
    while True:
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_bitcoin())
      asyncio.create_task(fetch_eth())
      await asyncio.sleep(300)
 
+
 async def main():
+   """Gathers all tasks in a concurrent main event loop"""
    await fetch_sentiment()
    await asyncio.gather(
       fetch_stack(),

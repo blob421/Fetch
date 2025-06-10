@@ -1,45 +1,46 @@
-# Price api
 import sqlite3
-import requests
 import json
-import time
 import datetime
-import schedule
+import asyncio
+import aiohttp
+#import logging
 
+#logging.basicConfig(filename='fetch.log', level=logging.INFO,  format='%(asctime)s - %(levelname)s - %(message)s')
 
 with open('ApiKey.txt', 'r') as file:
     headers = json.load(file)
 
 
-def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
+async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
    
    for attempt in range(max_retries):
      
      try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
-    
-     except requests.exceptions.RequestException as e:
-        print(f'Attempt{attempt + 1} failed: {e}')
+        async with aiohttp.ClientSession() as session:
+           async with session.get(url, headers=headers) as response:
       
-        time.sleep(wait_time)
+             response.raise_for_status()
+             return await response.json()
+    
+     except aiohttp.ClientError as e:
+        print(f'Attempt{attempt + 1} failed: {e}')
+        await asyncio.sleep(wait_time)
    
    print("Max retries reached. Failed to fetch data.")
    return None 
 
 
-def fetch_sentiment():
+async def fetch_sentiment():
  
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
  fng_name, fng_value = None, None
- 
+ #logging.info(f"{date_time}: fetch_sentiment ran")
  url2 = 'https://api.alternative.me/fng/?limit=2&format=json'
 
  try:
-     
-      response2 = fetch_data_with_retry(url2, None)
+      
+      response2 = await fetch_data_with_retry(url2, None)
         
       if response2 and "data" in response2 and response2["data"]:
          fng_value = response2['data'][0]['value']
@@ -64,7 +65,7 @@ def fetch_sentiment():
        return
        
 
-def fetch_marketdata():
+async def fetch_marketdata():
  global fng_name, fng_value
  
  marketCap = None
@@ -79,7 +80,7 @@ def fetch_marketdata():
 
  try:
     
-    response = fetch_data_with_retry(url, headers)
+    response = await fetch_data_with_retry(url, headers)
           
     if response is None:
        print(f"{date_time} 'None' values registered (market)")
@@ -141,7 +142,7 @@ def fetch_marketdata():
    cursor.close()
  
 
-def fetch_bitcoin():    
+async def fetch_bitcoin():    
  
  price = None
  volume = None
@@ -157,7 +158,7 @@ def fetch_bitcoin():
  date_time = datetime.datetime.now()
    
  try:
-   response = fetch_data_with_retry(url, headers)
+   response = await fetch_data_with_retry(url, headers)
 
    if response is None:
       print(f"{date_time} 'None' values registered (bitcoin)")
@@ -223,7 +224,7 @@ def fetch_bitcoin():
  finally:
    cursor.close()
  
-def fetch_eth():
+async def fetch_eth():
  
  price = None
  volume = None
@@ -241,7 +242,7 @@ def fetch_eth():
  
  try:
    
-   response = fetch_data_with_retry(url, headers)
+   response = await fetch_data_with_retry(url, headers)
    
    if response is None:
       print(f"{date_time} 'None' values registered (eth)")
@@ -308,25 +309,61 @@ def fetch_eth():
    cursor.close()
 
 
+
+# Calculates time from sentiment refresh (usually at 20:00)
+def calculate_time():
+ time_now = datetime.datetime.now()
+ target_time = datetime.datetime.now().replace(hour=20, minute=2)
+ 
+ if time_now > target_time:
+    target_time += datetime.timedelta(days=1)
+ 
+ return (target_time - time_now).total_seconds()
+
+
 ## Main program
 
 fng_value = None
 fng_name = None
-fetch_sentiment()
-
-schedule.every().day.at("20:02").do(fetch_sentiment)
-schedule.every().hour.do(fetch_sentiment)
 
 
-while True:      
+async def hourly_sentiment():
+   while True:
+      await asyncio.sleep(3600)
+      await fetch_sentiment()
+
+async def daily_sentiment():
+   while True:
+      sleeptime = calculate_time()
+      await asyncio.sleep(sleeptime)
+      await fetch_sentiment()
+      calculate_time()
+      
+async def fetch_stack():
+   while True:
+      await fetch_marketdata()
+      await fetch_bitcoin()
+      await fetch_eth()
+      await asyncio.sleep(300)
+
+async def main():
+   await fetch_sentiment()
+   await asyncio.gather(
+      fetch_stack(),
+      daily_sentiment(),
+      hourly_sentiment(),
+   )
+ 
+
+asyncio.run(main())
+
+
+
+
   
-  schedule.run_pending()
   
-  fetch_marketdata()
-  fetch_bitcoin()
-  fetch_eth()
   
-  time.sleep(300)
+
 
 
 

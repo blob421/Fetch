@@ -346,7 +346,7 @@ fng_name = None
 async def hourly_sentiment():
    """Fetches sentiment data every hours"""
    while True:
-      await asyncio.sleep(3600)
+      await asyncio.sleep(3540)
       await fetch_sentiment()
 
 

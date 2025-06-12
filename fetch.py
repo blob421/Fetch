@@ -5,7 +5,6 @@ import asyncio
 import aiohttp
 
 
-
 with open('ApiKey.txt', 'r') as file:   #Reads api-key from file 
     headers = json.load(file)
 
@@ -327,14 +326,29 @@ async def fetch_eth():
 
 
 def calculate_time():
- """Calculates the time left until 20:02 (until Alternative updates), returns seconds"""
+ """Calculates the time left until 20:03 (until Alternative updates), returns seconds"""
  time_now = datetime.datetime.now()
- target_time = datetime.datetime.now().replace(hour=20, minute=2)
+ target_time = datetime.datetime.now().replace(hour=20, minute=3)
  
  if time_now > target_time:                   
     target_time += datetime.timedelta(days=1)
  
  return (target_time - time_now).total_seconds()
+
+
+def delay():
+   """Returns the time to wait in seconds when starting the program,
+      prevents collision of fetching functions with daily_sentiment()"""
+   split_time = str(datetime.datetime.now()).split(" ")
+
+   hour_min = split_time[1].split(':')
+
+   if hour_min[1].endswith("3") or hour_min[1].endswith("8"):
+      print("Starting in 1 minute ...") 
+      return 60
+   
+   else:
+      return 0
 
 
 ## Main program
@@ -344,31 +358,36 @@ fng_name = None
 
 
 async def hourly_sentiment():
-   """Fetches sentiment data every hours"""
+   """Desynchronizes itself from the fetching functions and fetches 
+      sentiment data every hours."""
+   wait_time = 3720  
    while True:
-      await asyncio.sleep(3540)
+      await asyncio.sleep(wait_time) 
       await fetch_sentiment()
+      wait_time = 3600
 
 
 async def daily_sentiment():
-   """Fetches sentiment data every day at 20:02"""
+   """Fetches sentiment data every day at 20:03""" 
    while True:
       sleeptime = calculate_time()
       await asyncio.sleep(sleeptime)
       await fetch_sentiment()
       
       
-async def fetch_stack():
+async def fetch_stack(): 
    """Concurrently fetches data on btc, eth and the market"""
    while True:
      asyncio.create_task(fetch_marketdata())
-     asyncio.create_task(fetch_bitcoin())
+     asyncio.create_task(fetch_bitcoin())            
      asyncio.create_task(fetch_eth())
      await asyncio.sleep(300)
 
 
 async def main():
-   """Gathers all tasks in a concurrent main event loop"""
+   """Gathers all tasks in a concurrent main event loop, delays if necessary"""
+   starting_delay = delay()
+   await asyncio.sleep(starting_delay)
    await fetch_sentiment()
    await asyncio.gather(
       fetch_stack(),

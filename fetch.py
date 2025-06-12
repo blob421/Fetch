@@ -3,7 +3,7 @@ import json
 import datetime
 import asyncio
 import aiohttp
-
+import time
 
 with open('ApiKey.txt', 'r') as file:   #Reads api-key from file 
     headers = json.load(file)
@@ -378,10 +378,15 @@ async def daily_sentiment():
 async def fetch_stack(): 
    """Concurrently fetches data on btc, eth and the market"""
    while True:
+     start_time = time.monotonic()
+    
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_bitcoin())            
      asyncio.create_task(fetch_eth())
-     await asyncio.sleep(300)
+    
+     elapsed = time.monotonic() - start_time
+    
+     await asyncio.sleep(300 - elapsed)
 
 
 async def main():

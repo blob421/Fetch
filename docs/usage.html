@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+    <title>About Fetch &#8212; Home v1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=61cd365c" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css?v=12dfc556" />
+    <script src="_static/documentation_options.js?v=5cb08e4e"></script>
+    <script src="_static/doctools.js?v=9a2dae69"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Functions" href="fetch.html" />
+    <link rel="prev" title="Fetch" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="about-fetch">
+<h1>About Fetch<a class="headerlink" href="#about-fetch" title="Link to this heading">¶</a></h1>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
+<p>Fetch is a script that collects data from Coinstats every five minutes and writes it into an
+SQLite3 database. It also collects sentiment data from Alternative every hour. By using
+asynchronous functions, Fetch is able to gather all the data simultaneously, keeping operations
+efficient by fully utilizing threads. Measurement intervals are also much more precise than
+with traditional methods.</p>
+</section>
+<section id="how-it-works">
+<h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading">¶</a></h2>
+<p>Fetch is an asynchronous program running through a main event loop. It uses the <cite>asyncio</cite>
+module to run tasks concurrently within the <cite>main()</cite> function. This means that the
+program continuously executes different functions instead of processing them sequentially
+and waiting for one to finish. Asynchronous operations occur inside the <cite>gather()</cite>
+function of the main loop.</p>
+</section>
+<section id="how-it-fetches-and-writes-to-the-database">
+<h2>How it fetches and writes to the database<a class="headerlink" href="#how-it-fetches-and-writes-to-the-database" title="Link to this heading">¶</a></h2>
+<p>There are four main functions responsible for fetching the data: <cite>fetch_bitcoin()</cite>,
+<cite>fetch_eth()</cite>, <cite>fetch_marketdata()</cite>, and <cite>fetch_sentiment()</cite>.</p>
+<p><cite>fetch_sentiment()</cite> is the only function that doesn’t write data but instead stores it
+globally every hour. Its data is then written to the database through the <cite>fetch_marketdata()</cite>
+function. All fetching functions use a core function named <cite>fetch_data_with_retry()</cite> to handle
+their requests.</p>
+</section>
+<section id="the-timing-process">
+<h2>The timing process<a class="headerlink" href="#the-timing-process" title="Link to this heading">¶</a></h2>
+<p>In <cite>main()</cite>, Fetch first checks the time and will delay execution by one minute using the
+<cite>delay()</cite> function if deemed necessary. This prevents other asynchronous functions from
+conflicting with <cite>daily_sentiment()</cite> at 20:03.</p>
+<p>Fetch then retrieves sentiment data once before proceeding. In <cite>gather()</cite>, the
+script will sets timers for three different functions:</p>
+<p><cite>fetch_stack()</cite>, <cite>daily_sentiment()</cite>, and <cite>hourly_sentiment()</cite>.</p>
+<p><cite>fetch_stack()</cite> will runs once, and be set to every five minutes. <cite>hourly_sentiment()</cite> will be set to
+one hour and two minutes, and to exactly one hour afterwards to prevent synchronization with
+<cite>fetch_stack()</cite>. This avoids conflicts due to their asynchronous
+nature. <cite>daily_sentiment()</cite> will runs every day at 20:03, with the exact timing calculated
+using the <cite>calculate_time()</cite> function.</p>
+</section>
+<section id="fail-safe-mechanisms">
+<h2>Fail-safe mechanisms<a class="headerlink" href="#fail-safe-mechanisms" title="Link to this heading">¶</a></h2>
+<p>This program features <cite>fetch_data_with_retry()</cite>, which is the core function responsible
+for making requests. It allows for up to five retries before giving up. If an attempt to fetch
+fails, it notifies the user. This prevents outdated or biased data from being inserted into
+the database and instead writes <cite>NULL</cite> values. <cite>asyncio</cite> will also compensate for any
+accumulated time-overhead after a while. Following the same logic, time measures are always
+taken before <cite>fetch_data_with_retry()</cite> thus keeping consistency in measure intervals if attempts were made.</p>
+</section>
+<section id="database-operations">
+<h2>Database operations<a class="headerlink" href="#database-operations" title="Link to this heading">¶</a></h2>
+<p>The database consists of three tables: <cite>bitcoin_data</cite>, <cite>eth_data</cite>, and <cite>market_data</cite>.
+The database runs in <strong>WAL (Write-Ahead Logging) mode</strong>, allowing for efficient chunked data movements
+and optimizing performance. Time measures are taken in a DateTime format and stored in the column
+“date” for each tables. These columns are indexed by default for faster access.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Home</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">Fetch</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">About Fetch</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fetch.html">Functions</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">Fetch</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">Fetch</a></li>
+      <li>Next: <a href="fetch.html" title="next chapter">Functions</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Blob421.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 7.3.7</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 0.7.16</a>
+      
+      |
+      <a href="_sources/usage.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

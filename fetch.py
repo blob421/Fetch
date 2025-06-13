@@ -337,8 +337,8 @@ def calculate_time():
 
 
 def delay():
-   """Returns the time to wait in seconds when starting the program,
-      prevents collision of fetching functions with daily_sentiment()"""
+   """Time to wait in seconds when starting the program,
+      prevents conflicts with daily_sentiment()"""
    split_time = str(datetime.datetime.now()).split(" ")
 
    hour_min = split_time[1].split(':')
@@ -400,8 +400,9 @@ async def main():
       hourly_sentiment(),
    )
  
-
-asyncio.run(main())
+if __name__ == '__main__':
+ 
+ asyncio.run(main())
 
 
 

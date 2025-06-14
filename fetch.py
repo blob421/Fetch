@@ -496,10 +496,18 @@ async def fetch_stack():
      current_time = datetime.datetime.now().second
      elapsed = time.monotonic() - start_time
     
-     if current_time == precise_time + 1:          # Handles time-drift
+     if precise_time == 0:                           # Handles time-drift
+       
+        if current_time == 59:
+           elapsed -= 0.5
+       
+        elif current_time == precise_time + 1:
+           elapsed += 0.5
+     
+     elif current_time == precise_time + 1:         
         elapsed += 0.5
-    
-     if current_time == precise_time - 1:
+     
+     elif current_time == precise_time - 1:
         elapsed -= 0.5
     
      await asyncio.sleep(300 - elapsed)

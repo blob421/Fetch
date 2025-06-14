@@ -35,76 +35,272 @@
 <span id="functions"></span><h1>Functions<a class="headerlink" href="#module-fetch" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.calculate_time">
-<span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">calculate_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.calculate_time" title="Link to this definition">¶</a></dt>
-<dd><p>Calculates the time left until 20:03 (until Alternative updates), returns seconds</p>
+<span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">calculate_time</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#fetch.calculate_time" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the time remaining until 20:03.</p>
+<p>This function determines the number of seconds left until the next scheduled 
+update at 20:03, ensuring accurate synchronization with Alternative’s data updates.</p>
+<p>If the current time is past 20:03, the function calculates the time remaining until 
+the same time on the next day.</p>
+<dl>
+<dt>Returns:</dt><dd><p>float: The number of seconds left until 20:03.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">calculate_time</span><span class="p">()</span>
+<span class="go">45782.5  # Time left in seconds</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.daily_sentiment">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">daily_sentiment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.daily_sentiment" title="Link to this definition">¶</a></dt>
-<dd><p>Fetches sentiment data every day at 20:03</p>
+<dd><p>Asynchronously fetch sentiment data every day at 20:03.</p>
+<p>This function runs an infinite loop that waits until the scheduled time (20:03) 
+before retrieving sentiment data using <cite>fetch_sentiment()</cite>. It calculates 
+the required sleep duration using <cite>calculate_time()</cite>, ensuring accurate execution 
+daily.</p>
+<dl>
+<dt>Returns:</dt><dd><p>None: This function runs indefinitely and does not return a value.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">daily_sentiment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The function will automatically fetch sentiment data every day at 20:03.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="fetch.delay">
-<span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.delay" title="Link to this definition">¶</a></dt>
-<dd><p>Time to wait in seconds when starting the program,
-prevents conflicts with daily_sentiment()</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="fetch.fetch_bitcoin">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_bitcoin</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_bitcoin" title="Link to this definition">¶</a></dt>
-<dd><p>Fetches bitcoin data and writes it to the database.
-Values will be set to “None” in case of failure and the user will be notified.</p>
+<dt class="sig sig-object py" id="fetch.fetch_coindata">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_coindata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coin</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">table_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_coindata" title="Link to this definition">¶</a></dt>
+<dd><p>Fetch cryptocurrency market data from an API and store it in an SQLite3 database.</p>
+<p>This function retrieves real-time data for a specific cryptocurrency, including 
+price, volume, supply, market capitalization, and price changes over time. The 
+retrieved information is stored in an SQLite3 database under a dynamically named 
+table.</p>
+<dl>
+<dt>Args:</dt><dd><p>url (str): The API endpoint to fetch cryptocurrency data.
+coin (str): The name of the cryptocurrency being retrieved.
+table_name (str): The database table where the data will be stored.</p>
+</dd>
+<dt>Database Schema:</dt><dd><ul class="simple">
+<li><p>date (DATETIME): Timestamp of the recorded data.</p></li>
+<li><p>price (DECIMAL(20,2)): Current price of the cryptocurrency.</p></li>
+<li><p>volume (DECIMAL(20,2)): Trading volume in the last 24 hours.</p></li>
+<li><p>marketCap (DECIMAL(20,2)): Total market capitalization.</p></li>
+<li><p>availableSupply (DECIMAL(20,2)): Available circulating supply.</p></li>
+<li><p>totalSupply (INTEGER): Total supply of the cryptocurrency.</p></li>
+<li><p>fullyDilutedValuation (DECIMAL(20,2)): Market value if fully diluted.</p></li>
+<li><p>priceChange1h (DECIMAL(20,2)): Price change percentage over 1 hour.</p></li>
+<li><p>priceChange1d (DECIMAL(20,2)): Price change percentage over 24 hours.</p></li>
+<li><p>priceChange1w (DECIMAL(20,2)): Price change percentage over 7 days.</p></li>
+</ul>
+</dd>
+<dt>Error Handling:</dt><dd><ul class="simple">
+<li><p>Handles JSON decoding errors, index/key errors, and general exceptions.</p></li>
+<li><p>Fails gracefully by printing an error message and storing <cite>None</cite> values 
+when data retrieval fails.</p></li>
+<li><p>Uses WAL (Write-Ahead Logging) mode for optimized database transactions.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><p>json.JSONDecodeError: If the response data cannot be parsed correctly.
+IndexError, KeyError: If expected fields are missing in the response.
+sqlite3.Error: If an issue occurs during database insertion.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">fetch_coindata</span><span class="p">(</span><span class="s2">&quot;https://api.example.com/btc&quot;</span><span class="p">,</span> <span class="s2">&quot;Bitcoin&quot;</span><span class="p">,</span> <span class="s2">&quot;bitcoin_data&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Data is stored in the `crypto_data.sqlite` database.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.fetch_data_with_retry">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_data_with_retry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_data_with_retry" title="Link to this definition">¶</a></dt>
-<dd><p>Main function responsible for fetching data. Includes a retry mechanism 
-to handle errors and returns a parsed JSON response as a dictionary.</p>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="fetch.fetch_eth">
-<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_eth</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_eth" title="Link to this definition">¶</a></dt>
-<dd><p>Fetches eth data and writes it to the database.
-Values will be set to “None” in case of failure and the user will be notified.</p>
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_data_with_retry</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_retries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wait_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="headerlink" href="#fetch.fetch_data_with_retry" title="Link to this definition">¶</a></dt>
+<dd><p>Asynchronously fetch data from a given API endpoint with a retry mechanism.</p>
+<p>This function attempts to retrieve JSON data from the specified <cite>url</cite> using 
+an asynchronous HTTP request. If the request fails due to client errors, it 
+retries up to <cite>max_retries</cite> times, waiting <cite>wait_time</cite> seconds between attempts.</p>
+<dl>
+<dt>Args:</dt><dd><p>url (str): The API endpoint to request data from.
+headers (dict): A dictionary containing HTTP headers for the request.
+max_retries (int, optional): The number of retry attempts in case of failure. Defaults to 5.
+wait_time (int, optional): The time (in seconds) to wait between retries. Defaults to 10.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict or None: The parsed JSON response as a dictionary if successful, otherwise <cite>None</cite>.</p>
+</dd>
+<dt>Raises:</dt><dd><p>aiohttp.ClientError: If an issue occurs during the request.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">fetch_data_with_retry</span><span class="p">(</span><span class="s2">&quot;https://api.example.com/data&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="s2">&quot;Bearer token&quot;</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+<span class="go">{&#39;price&#39;: 42000, &#39;volume&#39;: 345678}</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.fetch_marketdata">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_marketdata</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_marketdata" title="Link to this definition">¶</a></dt>
-<dd><p>Fetches market data and writes it to the database.
-Values will be set to “None” in case of failure and the user will be notified.</p>
+<dd><p>Fetch market-related data from CoinStats and store it in an SQLite3 database.</p>
+<p>This function retrieves cryptocurrency market metrics—including market capitalization,
+trading volume, and Bitcoin dominance—from the CoinStats API. The collected data is stored
+in an SQLite3 database using WAL mode for efficiency. Additionally, sentiment data from
+the Fear &amp; Greed Index is included in the database.</p>
+<dl>
+<dt>Global Variables:</dt><dd><p>fng_name (str or None): Sentiment classification (e.g., “Extreme Fear”, “Greed”).
+fng_value (int or None): Sentiment score ranging from 0 to 100.</p>
+</dd>
+<dt>Database Schema:</dt><dd><ul class="simple">
+<li><p>date (DATETIME): Timestamp of the recorded data.</p></li>
+<li><p>marketCap (INTEGER): Total market capitalization of cryptocurrencies.</p></li>
+<li><p>volume (INTEGER): Overall trading volume.</p></li>
+<li><p>btcDominance (DECIMAL(20,2)): Percentage dominance of Bitcoin in the market.</p></li>
+<li><p>marketCapChange (DECIMAL(20,2)): Change in market capitalization since the last measurement.</p></li>
+<li><p>volumeChange (DECIMAL(20,2)): Change in trading volume over time.</p></li>
+<li><p>btcDominanceChange (DECIMAL(20,2)): Change in Bitcoin’s dominance percentage.</p></li>
+<li><p>fear_greed_value (INTEGER): Fear &amp; Greed Index score.</p></li>
+<li><p>fear_greed_name (VARCHAR(20)): Sentiment classification label.</p></li>
+</ul>
+</dd>
+<dt>Error Handling:</dt><dd><ul class="simple">
+<li><p>Handles JSON decoding errors, index/key errors, and generic exceptions.</p></li>
+<li><p>Fails gracefully by printing an error message and storing <cite>None</cite> values when data retrieval fails.</p></li>
+<li><p>Includes a database transaction with WAL mode to optimize performance.</p></li>
+</ul>
+</dd>
+<dt>Raises:</dt><dd><p>json.JSONDecodeError: If the response data cannot be parsed correctly.
+IndexError, KeyError: If expected fields are missing in the response.
+sqlite3.Error: If an issue occurs during database insertion.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">fetch_marketdata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Data is stored in the `crypto_data.sqlite` database.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.fetch_sentiment">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_sentiment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_sentiment" title="Link to this definition">¶</a></dt>
-<dd><p>Function that fetches sentiment data and stores it globally.
-fng_name and fng_value will be set to “None” in case of failure
-and the user will be notified.</p>
+<dd><p>Fetch sentiment data from the Fear &amp; Greed Index API.</p>
+<p>This function retrieves sentiment data from Alternative.me’s Fear &amp; Greed Index API
+and stores the fetched value and classification in global variables (<cite>fng_name</cite>, <cite>fng_value</cite>).
+If the request fails, it prints an error message and defaults the values to <cite>None</cite>.</p>
+<p>The function uses <cite>fetch_data_with_retry()</cite> to handle retries in case of failures.</p>
+<dl>
+<dt>Global Variables:</dt><dd><p>fng_name (str or None): Sentiment classification (e.g., “Greed”, “Fear”).
+fng_value (int or None): Sentiment score ranging from 0 to 100.</p>
+</dd>
+<dt>Raises:</dt><dd><p>json.JSONDecodeError: If the response JSON parsing fails.
+IndexError, KeyError: If expected fields are missing in the response data.
+Exception: For any other unexpected errors.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">fetch_sentiment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">fng_name</span><span class="p">,</span> <span class="n">fng_value</span><span class="p">)</span>
+<span class="go">&quot;Greed&quot;, 74</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.fetch_stack">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">fetch_stack</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.fetch_stack" title="Link to this definition">¶</a></dt>
-<dd><p>Concurrently fetches data on btc, eth and the market</p>
+<dd><p>Asynchronously fetch market and cryptocurrency data every five minutes.</p>
+<p>This function concurrently retrieves market data, Bitcoin data, and Ethereum data 
+using asynchronous tasks. It ensures efficiency by utilizing non-blocking execution 
+through <cite>asyncio.create_task()</cite>. To maintain precise measurement intervals, it calculates 
+elapsed time dynamically and adjusts the sleep duration accordingly.</p>
+<dl>
+<dt>Data Sources:</dt><dd><ul class="simple">
+<li><p><cite>fetch_marketdata()</cite>: Retrieves overall market metrics.</p></li>
+<li><p><cite>fetch_coindata(url_btc, ‘bitcoin’, ‘bitcoin_data’)</cite>: Fetches Bitcoin-specific data.</p></li>
+<li><p><cite>fetch_coindata(url_eth, ‘eth’, ‘eth_data’)</cite>: Fetches Ethereum-specific data.</p></li>
+</ul>
+</dd>
+<dt>Timing Mechanism:</dt><dd><ul class="simple">
+<li><p>Uses <cite>time.monotonic()</cite> to measure execution time.</p></li>
+<li><p>Adjusts the sleep interval dynamically to compensate for processing time.</p></li>
+<li><p>Ensures updates occur every <strong>300 seconds (5 minutes)</strong> with high accuracy.</p></li>
+</ul>
+</dd>
+<dt>Returns:</dt><dd><p>None: This function runs indefinitely and does not return a value.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">fetch_stack</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The function continuously fetches and updates market data every five minutes.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.hourly_sentiment">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">hourly_sentiment</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.hourly_sentiment" title="Link to this definition">¶</a></dt>
-<dd><p>Desynchronizes itself from the fetching functions and fetches 
-sentiment data every hours.</p>
+<dd><p>Periodically fetch sentiment data while avoiding synchronization conflicts.</p>
+<p>This function runs an infinite loop that asynchronously fetches sentiment 
+data every hour. To prevent synchronization issues with other fetching functions, 
+it initially waits <strong>62 minutes</strong> (3720 seconds) before the first execution, then 
+continues fetching data every <strong>60 minutes</strong>.</p>
+<p>The sentiment data is retrieved using <cite>fetch_sentiment()</cite>, ensuring timely updates.</p>
+<dl>
+<dt>Returns:</dt><dd><p>None: This function runs indefinitely and does not return a value.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">hourly_sentiment</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The function will continuously fetch sentiment data every hour.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="fetch.main">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#fetch.main" title="Link to this definition">¶</a></dt>
-<dd><p>Gathers all tasks in a concurrent main event loop, delays if necessary</p>
+<dd><p>Run the main event loop to manage concurrent tasks.</p>
+<p>This function initializes the program by introducing a delay (if necessary) using <cite>start_delay()</cite>, 
+ensuring smooth execution without conflicts. After retrieving sentiment data, it concurrently gathers 
+multiple asynchronous tasks using <cite>asyncio.gather()</cite>, enabling efficient execution of:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><cite>fetch_stack()</cite>: Fetches market, Bitcoin, and Ethereum data every five minutes.</p></li>
+<li><p><cite>daily_sentiment()</cite>: Retrieves sentiment data once a day at 20:03.</p></li>
+<li><p><cite>hourly_sentiment()</cite>: Fetches sentiment data every hour while avoiding synchronization issues.</p></li>
+</ul>
+</div></blockquote>
+<dl>
+<dt>Returns:</dt><dd><p>None: The function runs indefinitely, managing all concurrent tasks.</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">main</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># This will continuously run all fetching functions within the event loop.</span>
+</pre></div>
+</div>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="fetch.start_delay">
+<span class="sig-prename descclassname"><span class="pre">fetch.</span></span><span class="sig-name descname"><span class="pre">start_delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#fetch.start_delay" title="Link to this definition">¶</a></dt>
+<dd><p>Calculate the delay time in seconds before starting the program.</p>
+<p>This function determines whether the program should wait one minute before execution
+to prevent conflicts with the <cite>daily_sentiment()</cite> function. If the current minute 
+ends in ‘3’ or ‘8’, it delays the start by 60 seconds; otherwise, it starts immediately.</p>
+<dl>
+<dt>Returns:</dt><dd><p>int: The number of seconds to wait (either 60 or 0).</p>
+</dd>
+<dt>Example:</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">delay</span> <span class="o">=</span> <span class="n">start_delay</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Waiting </span><span class="si">{</span><span class="n">delay</span><span class="si">}</span><span class="s2"> seconds before starting.&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

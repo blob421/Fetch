@@ -36,28 +36,27 @@
 <h1>About Fetch<a class="headerlink" href="#about-fetch" title="Link to this heading">¶</a></h1>
 <section id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading">¶</a></h2>
-<p>Fetch is a script that collects data from Coinstats every five minutes and writes it into an
-SQLite3 database. It also collects sentiment data from Alternative every hour. By using
-asynchronous functions, Fetch is able to gather all the data simultaneously, keeping operations
-efficient by fully utilizing threads. Measurement intervals are also much more precise than
-with traditional methods.</p>
+<p>Fetch is a script designed to collect market-related data on cryptocurrencies, including
+Bitcoin and Ethereum. It uses an SQLite3 database for storage and excels at time consistency.
+By leveraging the power of asynchronous programming, Fetch efficiently harnesses threading to
+deliver precise and optimized operations.</p>
 </section>
 <section id="how-it-works">
 <h2>How it works<a class="headerlink" href="#how-it-works" title="Link to this heading">¶</a></h2>
 <p>Fetch is an asynchronous program running through a main event loop. It uses the <cite>asyncio</cite>
 module to run tasks concurrently within the <cite>main()</cite> function. This means that the
-program continuously executes different functions instead of processing them sequentially
-and waiting for one to finish. Asynchronous operations occur inside the <cite>gather()</cite>
-function of the main loop.</p>
+program continuously executes functions instead of processing them sequentially. Asynchronous
+operations occur inside the <cite>gather()</cite> function of the <cite>main()</cite> loop.</p>
 </section>
 <section id="how-it-fetches-and-writes-to-the-database">
 <h2>How it fetches and writes to the database<a class="headerlink" href="#how-it-fetches-and-writes-to-the-database" title="Link to this heading">¶</a></h2>
-<p>There are four main functions responsible for fetching the data: <cite>fetch_bitcoin()</cite>,
-<cite>fetch_eth()</cite>, <cite>fetch_marketdata()</cite>, and <cite>fetch_sentiment()</cite>.</p>
-<p><cite>fetch_sentiment()</cite> is the only function that doesn’t write data but instead stores it
-globally every hour. Its data is then written to the database through the <cite>fetch_marketdata()</cite>
-function. All fetching functions use a core function named <cite>fetch_data_with_retry()</cite> to handle
-their requests.</p>
+<p>There are three main functions responsible for fetching the data:</p>
+<p><cite>fetch_coindata()</cite>, <cite>fetch_marketdata()</cite>, and <cite>fetch_sentiment()</cite>.</p>
+<p>All fetching functions use a core function named <cite>fetch_data_with_retry()</cite> to handle their
+requests.</p>
+<p><cite>fetch_sentiment()</cite> is the only fetching function that doesn’t write to the database.
+Instead, it fetches data and stores it globally to save ressources.
+This data is then written to the database through the <cite>fetch_marketdata()</cite> function.</p>
 </section>
 <section id="the-timing-process">
 <h2>The timing process<a class="headerlink" href="#the-timing-process" title="Link to this heading">¶</a></h2>
@@ -65,22 +64,23 @@ their requests.</p>
 <cite>delay()</cite> function if deemed necessary. This prevents other asynchronous functions from
 conflicting with <cite>daily_sentiment()</cite> at 20:03.</p>
 <p>Fetch then retrieves sentiment data once before proceeding. In <cite>gather()</cite>, the
-script will sets timers for three different functions:</p>
+script will sets timers in three different functions:</p>
 <p><cite>fetch_stack()</cite>, <cite>daily_sentiment()</cite>, and <cite>hourly_sentiment()</cite>.</p>
 <p><cite>fetch_stack()</cite> will runs once, and be set to every five minutes. <cite>hourly_sentiment()</cite> will be set to
 one hour and two minutes, and to exactly one hour afterwards to prevent synchronization with
-<cite>fetch_stack()</cite>. This avoids conflicts due to their asynchronous
-nature. <cite>daily_sentiment()</cite> will runs every day at 20:03, with the exact timing calculated
-using the <cite>calculate_time()</cite> function.</p>
+<cite>fetch_stack()</cite>. This avoids conflicts due to their asynchronous nature. <cite>daily_sentiment()</cite>
+will runs every day at 20:03, with the exact timing calculated using the <cite>calculate_time()</cite>
+function.</p>
 </section>
 <section id="fail-safe-mechanisms">
 <h2>Fail-safe mechanisms<a class="headerlink" href="#fail-safe-mechanisms" title="Link to this heading">¶</a></h2>
-<p>This program features <cite>fetch_data_with_retry()</cite>, which is the core function responsible
-for making requests. It allows for up to five retries before giving up. If an attempt to fetch
-fails, it notifies the user. This prevents outdated or biased data from being inserted into
-the database and instead writes <cite>NULL</cite> values. <cite>asyncio</cite> will also compensate for any
-accumulated time-overhead after a while. Following the same logic, time measures are always
-taken before <cite>fetch_data_with_retry()</cite> thus keeping consistency in measure intervals if attempts were made.</p>
+<p><cite>fetch_data_with_retry()</cite> is the core function responsible for making requests. It allows for
+up to five retries before giving up. If an attempt to fetch fails, it notifies the user. This
+prevents outdated or biased data from being inserted into the database and instead writes
+<cite>NULL</cite> values. Fetch can also compensates for any accumulated time-overhead by executing its
+<cite>fetch_stack()</cite> function sooner. It ensures time measurements are always taken at the same exact
+second for every interval. Moreover, time measurements are always proceeded before <cite>fetch_data_with_retry()</cite>,
+enabling consistency even if attempts to fetch were made.</p>
 </section>
 <section id="database-operations">
 <h2>Database operations<a class="headerlink" href="#database-operations" title="Link to this heading">¶</a></h2>

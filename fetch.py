@@ -8,14 +8,37 @@ import time
 with open('ApiKey.txt', 'r') as file:   #Reads api-key from file 
     headers = json.load(file)
 
+url_btc = "https://openapiv1.coinstats.app/coins?currency=USD&name=bitcoin&symbol=BTC"
+url_eth = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symbol=ETH"
 
 
-async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
-   """Main function responsible for fetching data. Includes a retry mechanism 
-      to handle errors and returns a parsed JSON response as a dictionary.
-   """
-   
-   for attempt in range(max_retries):
+
+async def fetch_data_with_retry(url: str, headers: dict, max_retries: int = 5, wait_time: int = 10) -> dict:
+    """
+    Asynchronously fetch data from a given API endpoint with a retry mechanism.
+
+    This function attempts to retrieve JSON data from the specified `url` using 
+    an asynchronous HTTP request. If the request fails due to client errors, it 
+    retries up to `max_retries` times, waiting `wait_time` seconds between attempts.
+
+    Args:
+        url (str): The API endpoint to request data from.
+        headers (dict): A dictionary containing HTTP headers for the request.
+        max_retries (int, optional): The number of retry attempts in case of failure. Defaults to 5.
+        wait_time (int, optional): The time (in seconds) to wait between retries. Defaults to 10.
+
+    Returns:
+        dict or None: The parsed JSON response as a dictionary if successful, otherwise `None`.
+
+    Raises:
+        aiohttp.ClientError: If an issue occurs during the request.
+    
+    Example:
+        >>> response = await fetch_data_with_retry("https://api.example.com/data", headers={"Authorization": "Bearer token"})
+        >>> print(response)
+        {'price': 42000, 'volume': 345678}
+    """
+    for attempt in range(max_retries):
      
      try:
         async with aiohttp.ClientSession() as session:
@@ -27,15 +50,34 @@ async def fetch_data_with_retry(url, headers, max_retries=5, wait_time=10):
         print(f'Attempt{attempt + 1} failed: {e}')
         await asyncio.sleep(wait_time)
    
-   print("Max retries reached. Failed to fetch data.")
-   return None 
+    print("Max retries reached. Failed to fetch data.")
+    return None 
 
 
 
 async def fetch_sentiment():
- """Function that fetches sentiment data and stores it globally.
-    fng_name and fng_value will be set to "None" in case of failure
-    and the user will be notified. 
+ """
+ Fetch sentiment data from the Fear & Greed Index API.
+
+ This function retrieves sentiment data from Alternative.me's Fear & Greed Index API
+ and stores the fetched value and classification in global variables (`fng_name`, `fng_value`).
+ If the request fails, it prints an error message and defaults the values to `None`.
+
+ The function uses `fetch_data_with_retry()` to handle retries in case of failures.
+
+ Global Variables:
+    fng_name (str or None): Sentiment classification (e.g., "Greed", "Fear").
+    fng_value (int or None): Sentiment score ranging from 0 to 100.
+
+ Raises:
+    json.JSONDecodeError: If the response JSON parsing fails.
+    IndexError, KeyError: If expected fields are missing in the response data.
+    Exception: For any other unexpected errors.
+
+ Example:
+    >>> await fetch_sentiment()
+    >>> print(fng_name, fng_value)
+    "Greed", 74
  """
  global fng_name, fng_value
  date_time = datetime.datetime.now() 
@@ -68,39 +110,73 @@ async def fetch_sentiment():
  except Exception as e:
        print(f"{date_time} Couldn't get sentiment data, returning 'None' : {e}")
        return
-       
+
 
 
 async def fetch_marketdata():
- """Fetches market data and writes it to the database.
-    Values will be set to "None" in case of failure and the user will be notified.
- """
- global fng_name, fng_value
+    """
+    Fetch market-related data from CoinStats and store it in an SQLite3 database.
+
+    This function retrieves cryptocurrency market metrics—including market capitalization,
+    trading volume, and Bitcoin dominance—from the CoinStats API. The collected data is stored
+    in an SQLite3 database using WAL mode for efficiency. Additionally, sentiment data from
+    the Fear & Greed Index is included in the database.
+
+    Global Variables:
+        fng_name (str or None): Sentiment classification (e.g., "Extreme Fear", "Greed").
+        fng_value (int or None): Sentiment score ranging from 0 to 100.
+
+    Database Schema:
+        - date (DATETIME): Timestamp of the recorded data.
+        - marketCap (INTEGER): Total market capitalization of cryptocurrencies.
+        - volume (INTEGER): Overall trading volume.
+        - btcDominance (DECIMAL(20,2)): Percentage dominance of Bitcoin in the market.
+        - marketCapChange (DECIMAL(20,2)): Change in market capitalization since the last measurement.
+        - volumeChange (DECIMAL(20,2)): Change in trading volume over time.
+        - btcDominanceChange (DECIMAL(20,2)): Change in Bitcoin's dominance percentage.
+        - fear_greed_value (INTEGER): Fear & Greed Index score.
+        - fear_greed_name (VARCHAR(20)): Sentiment classification label.
+
+    Error Handling:
+        - Handles JSON decoding errors, index/key errors, and generic exceptions.
+        - Fails gracefully by printing an error message and storing `None` values when data retrieval fails.
+        - Includes a database transaction with WAL mode to optimize performance.
+
+    Raises:
+        json.JSONDecodeError: If the response data cannot be parsed correctly.
+        IndexError, KeyError: If expected fields are missing in the response.
+        sqlite3.Error: If an issue occurs during database insertion.
+
+    Example:
+        >>> await fetch_marketdata()
+        >>> # Data is stored in the `crypto_data.sqlite` database.
+    """
+    global fng_name, fng_value
  
- marketCap = None
- volume = None
- btcDominance = None
- marketCapChange = None
- volumeChange = None
- btcDominanceChange = None
+    marketCap = None
+    volume = None
+    btcDominance = None
+    marketCapChange = None
+    volumeChange = None
+    btcDominanceChange = None
 
- url = "https://openapiv1.coinstats.app/markets"
- date_time = datetime.datetime.now()
+    url = "https://openapiv1.coinstats.app/markets"
+    date_time = datetime.datetime.now()
 
- try:
+    try:
     
-    response = await fetch_data_with_retry(url, headers)
+       response = await fetch_data_with_retry(url, headers)
           
-    if response is None:
-       print(f"{date_time} 'None' values registered (market)")
-       pass
+       if response is None:
+          print(f"{date_time} 'None' values registered (market)")
+          pass
    
     
-    with sqlite3.connect('crypto_data.sqlite') as conn:
-        cursor = conn.cursor() 
+       with sqlite3.connect('crypto_data.sqlite') as conn:
+           cursor = conn.cursor() 
         
-        conn.execute("PRAGMA journal_mode=WAL;")
-        cursor.execute('''CREATE TABLE IF NOT EXISTS market_data 
+           conn.execute("PRAGMA journal_mode=WAL;")
+           cursor.execute('''CREATE TABLE IF NOT EXISTS market_data 
                            (date DATETIME,
                            marketCap INTEGER, 
                            volume INTEGER, 
@@ -111,50 +187,87 @@ async def fetch_marketdata():
                            fear_greed_value INTEGER,
                            fear_greed_name VARCHAR(20))''')
             
-        cursor.execute('CREATE INDEX IF NOT EXISTS idx_market_data_date ON market_data(date);')
+           cursor.execute('CREATE INDEX IF NOT EXISTS idx_market_data_date ON market_data(date);')
        
-        data = response
+           data = response
             
-        marketCap = data.get("marketCap") if data else None
-        volume = data.get("volume") if data else None
-        btcDominance = data.get("btcDominance") if data else None
-        marketCapChange = data.get("marketCapChange") if data else None    
-        volumeChange = data.get("volumeChange") if data else None
-        btcDominanceChange = data.get("btcDominanceChange") if data else None
-        date = date_time
+           marketCap = data.get("marketCap") if data else None
+           volume = data.get("volume") if data else None
+           btcDominance = data.get("btcDominance") if data else None
+           marketCapChange = data.get("marketCapChange") if data else None    
+           volumeChange = data.get("volumeChange") if data else None
+           btcDominanceChange = data.get("btcDominanceChange") if data else None
+           date = date_time
  
- except json.JSONDecodeError as e:
-    print(f"{date_time} 'None' values registered (market): {e}")
-    pass
- except (IndexError, KeyError) as e:
-    print(f"{date_time} 'None' values registered (market): {e}")
-    pass
- except Exception as e:
-    print(f"{date_time} 'None' values registered (market): {e}")
-    pass
+    except json.JSONDecodeError as e:
+       print(f"{date_time} 'None' values registered (market): {e}")
+       pass
+    except (IndexError, KeyError) as e:
+       print(f"{date_time} 'None' values registered (market): {e}")
+       pass
+    except Exception as e:
+       print(f"{date_time} 'None' values registered (market): {e}")
+       pass
         
       
- try:
-   cursor.executemany('''INSERT INTO market_data (date, marketCap, volume, btcDominance,
-   marketCapChange, volumeChange, btcDominanceChange, fear_greed_value , fear_greed_name)
-   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', [(date, marketCap, volume,
-   btcDominance, marketCapChange, volumeChange , btcDominanceChange, fng_value, fng_name)])
+    try:
+      cursor.executemany('''INSERT INTO market_data (date, marketCap, volume, btcDominance,
+      marketCapChange, volumeChange, btcDominanceChange, fear_greed_value , fear_greed_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', [(date, marketCap, volume,
+      btcDominance, marketCapChange, volumeChange , btcDominanceChange, fng_value, fng_name)])
         
-   conn.commit()
+      conn.commit()
    
        
- except sqlite3.Error as e:
+    except sqlite3.Error as e:
            print(f'Database insert error: {e}')
  
- finally:
-   cursor.close()
+    finally:
+      cursor.close()
  
 
 
-async def fetch_bitcoin():    
- """Fetches bitcoin data and writes it to the database.
-    Values will be set to "None" in case of failure and the user will be notified.
+async def fetch_coindata(url: str, coin: str, table_name: str):
  """
+    Fetch cryptocurrency market data from an API and store it in an SQLite3 database.
+
+    This function retrieves real-time data for a specific cryptocurrency, including 
+    price, volume, supply, market capitalization, and price changes over time. The 
+    retrieved information is stored in an SQLite3 database under a dynamically named 
+    table.
+
+    Args:
+        url (str): The API endpoint to fetch cryptocurrency data.
+        coin (str): The name of the cryptocurrency being retrieved.
+        table_name (str): The database table where the data will be stored.
+
+    Database Schema:
+        - date (DATETIME): Timestamp of the recorded data.
+        - price (DECIMAL(20,2)): Current price of the cryptocurrency.
+        - volume (DECIMAL(20,2)): Trading volume in the last 24 hours.
+        - marketCap (DECIMAL(20,2)): Total market capitalization.
+        - availableSupply (DECIMAL(20,2)): Available circulating supply.
+        - totalSupply (INTEGER): Total supply of the cryptocurrency.
+        - fullyDilutedValuation (DECIMAL(20,2)): Market value if fully diluted.
+        - priceChange1h (DECIMAL(20,2)): Price change percentage over 1 hour.
+        - priceChange1d (DECIMAL(20,2)): Price change percentage over 24 hours.
+        - priceChange1w (DECIMAL(20,2)): Price change percentage over 7 days.
+
+    Error Handling:
+        - Handles JSON decoding errors, index/key errors, and general exceptions.
+        - Fails gracefully by printing an error message and storing `None` values 
+          when data retrieval fails.
+        - Uses WAL (Write-Ahead Logging) mode for optimized database transactions.
+
+    Raises:
+        json.JSONDecodeError: If the response data cannot be parsed correctly.
+        IndexError, KeyError: If expected fields are missing in the response.
+        sqlite3.Error: If an issue occurs during database insertion.
+
+    Example:
+        >>> await fetch_coindata("https://api.example.com/btc", "Bitcoin", "bitcoin_data")
+        >>> # Data is stored in the `crypto_data.sqlite` database.
+ """ 
  price = None
  volume = None
  marketCap = None
@@ -164,103 +277,15 @@ async def fetch_bitcoin():
  priceChange1h = None
  priceChange1d = None
  priceChange1w = None
- 
- url = "https://openapiv1.coinstats.app/coins?currency=USD&name=bitcoin&symbol=BTC"
- date_time = datetime.datetime.now()
-   
- try:
-   response = await fetch_data_with_retry(url, headers)
 
-   if response is None:
-      print(f"{date_time} 'None' values registered (bitcoin)")
-      pass
-  
-   if "result" in response and len(response["result"]) > 0:
-      price = response["result"][0]["price"]
-      volume = response["result"][0]["volume"]
-      marketCap = response["result"][0]["marketCap"]
-      availableSupply = response["result"][0]["availableSupply"]
-      totalSupply = response["result"][0]["totalSupply"]
-      fullyDilutedValuation = response["result"][0]["fullyDilutedValuation"]
-      priceChange1h = response["result"][0]["priceChange1h"]
-      priceChange1d = response["result"][0]["priceChange1d"]
-      priceChange1w = response["result"][0]["priceChange1w"]
-
-   
-   with sqlite3.connect('crypto_data.sqlite') as conn:
-      cursor = conn.cursor()
-      conn.execute("PRAGMA journal_mode=WAL;")
-      cursor.execute('''CREATE TABLE IF NOT EXISTS bitcoin_data
-                      (date DATETIME,
-                      price DECIMAL(20, 2),
-                      volume DECIMAL(20, 2),
-                      marketCap DECIMAL(20, 2),
-                      availableSupply DECIMAL(20, 2),
-                      totalSupply INTEGER,
-                      fullyDilutedValuation DECIMAL(20, 2),
-                      priceChange1h DECIMAL(20, 2),
-                      priceChange1d DECIMAL(20, 2),
-                      priceChange1w DECIMAL(20, 2))''')
-      
-      cursor.execute('CREATE INDEX IF NOT EXISTS idx_btc_data_date ON bitcoin_data(date);')
-
- except json.JSONDecodeError as e:
-    print(f"{date_time} 'None' values registered (bitcoin) : {e}")
-    pass
- except (IndexError, KeyError) as e:
-    print(f"{date_time} 'None' values registered (bitcoin) : {e}")
-    pass
- except Exception as e:
-    print(f"{date_time} 'None' values registered (bitcoin) : {e}")
-    pass
- 
- 
- date = date_time
-      
-   
- try:
-   cursor.executemany('''INSERT INTO bitcoin_data (date, price, volume, marketCap,
-    availableSupply, totalSupply, fullyDilutedValuation, priceChange1h,
-    priceChange1d, priceChange1w)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', [(date, price, volume, marketCap,
-    availableSupply, totalSupply, fullyDilutedValuation, priceChange1h, priceChange1d,
-    priceChange1w)])
-                       
-   conn.commit()
-   
-      
- except sqlite3.Error as e:
-         print(f'Database insert error: {e}')
- 
- finally:
-   cursor.close()
- 
-
-
-async def fetch_eth():
- """Fetches eth data and writes it to the database.
-    Values will be set to "None" in case of failure and the user will be notified.
- """
- price = None
- volume = None
- marketCap = None
- availableSupply = None
- totalSupply = None
- fullyDilutedValuation = None
- priceChange1h = None
- priceChange1d = None
- priceChange1w = None
- 
- url = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symbol=ETH"
  date_time = datetime.datetime.now()
 
- 
  try:
    
    response = await fetch_data_with_retry(url, headers)
    
    if response is None:
-      print(f"{date_time} 'None' values registered (eth)")
+      print(f"{date_time} 'None' values registered {coin}")
       pass
    
    if "result" in response and len(response["result"]) > 0:
@@ -273,14 +298,13 @@ async def fetch_eth():
       priceChange1h = response["result"][0]["priceChange1h"]
       priceChange1d = response["result"][0]["priceChange1d"]
       priceChange1w = response["result"][0]["priceChange1w"]
-    
-   
+
    with sqlite3.connect('crypto_data.sqlite') as conn:
     
       cursor = conn.cursor()
       conn.execute("PRAGMA journal_mode=WAL;")
       
-      cursor.execute('''CREATE TABLE IF NOT EXISTS eth_data
+      cursor.execute(f'''CREATE TABLE IF NOT EXISTS {table_name}
                       (date DATETIME,
                       price DECIMAL(20, 2),
                       volume DECIMAL(20, 2),
@@ -292,28 +316,29 @@ async def fetch_eth():
                       priceChange1d DECIMAL(20, 2),
                       priceChange1w DECIMAL(20, 2))''')
  
-      cursor.execute('CREATE INDEX IF NOT EXISTS idx_eth_data_date ON eth_data(date);')
+      cursor.execute(f'CREATE INDEX IF NOT EXISTS idx_{table_name}_date ON {table_name}(date);')
+   
 
- 
  except json.JSONDecodeError as e:
-    print(f"{date_time} 'None' values registered (eth) : {e}")
+    print(f"{date_time} 'None' values registered {coin} : {e}")
     pass
  except (IndexError, KeyError) as e:
-    print(f"{date_time} 'None' values registered (eth) : {e}")
+    print(f"{date_time} 'None' values registered {coin} : {e}")
     pass
  except Exception as e:
-    print(f"{date_time} 'None' values registered (eth) : {e}")
+    print(f"{date_time} 'None' values registered {coin} : {e}")
     pass
  
  date = date_time
      
  try:
-   cursor.executemany('''INSERT INTO eth_data (date, price, volume, marketCap,
+  
+   cursor.execute(f'''INSERT INTO {table_name} (date, price, volume, marketCap,
     availableSupply, totalSupply, fullyDilutedValuation, priceChange1h,
     priceChange1d, priceChange1w)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', [(date, price, volume, marketCap,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (date, price, volume, marketCap,
     availableSupply, totalSupply, fullyDilutedValuation, priceChange1h, priceChange1d,
-    priceChange1w)])
+    priceChange1w))
                        
    conn.commit()
       
@@ -325,10 +350,25 @@ async def fetch_eth():
 
 
 
-def calculate_time():
- """Calculates the time left until 20:03 (until Alternative updates), returns seconds"""
+def calculate_time() -> float:
+ """
+    Calculate the time remaining until 20:03.
+
+    This function determines the number of seconds left until the next scheduled 
+    update at 20:03, ensuring accurate synchronization with Alternative's data updates.
+
+    If the current time is past 20:03, the function calculates the time remaining until 
+    the same time on the next day.
+
+    Returns:
+        float: The number of seconds left until 20:03.
+
+    Example:
+        >>> calculate_time()
+        45782.5  # Time left in seconds
+ """
  time_now = datetime.datetime.now()
- target_time = datetime.datetime.now().replace(hour=20, minute=3)
+ target_time = datetime.datetime.now().replace(hour=20, minute=3, second=2)
  
  if time_now > target_time:                   
     target_time += datetime.timedelta(days=1)
@@ -336,19 +376,31 @@ def calculate_time():
  return (target_time - time_now).total_seconds()
 
 
-def delay():
-   """Time to wait in seconds when starting the program,
-      prevents conflicts with daily_sentiment()"""
-   split_time = str(datetime.datetime.now()).split(" ")
 
-   hour_min = split_time[1].split(':')
+def start_delay() -> int:
+   """
+    Calculate the delay time in seconds before starting the program.
 
-   if hour_min[1].endswith("3") or hour_min[1].endswith("8"):
+    This function determines whether the program should wait one minute before execution
+    to prevent conflicts with the `daily_sentiment()` function. If the current minute 
+    ends in '3' or '8', it delays the start by 60 seconds; otherwise, it starts immediately.
+
+    Returns:
+        int: The number of seconds to wait (either 60 or 0).
+
+    Example:
+        >>> delay = start_delay()
+        >>> print(f"Waiting {delay} seconds before starting.")
+   """
+   minutes = str(datetime.datetime.now().minute)
+
+   if minutes.endswith("3") or minutes.endswith("8"):
       print("Starting in 1 minute ...") 
       return 60
    
    else:
       return 0
+
 
 
 ## Main program
@@ -357,9 +409,25 @@ fng_value = None    #Initializing global sentiment, market_data will use it
 fng_name = None
 
 
+
 async def hourly_sentiment():
-   """Desynchronizes itself from the fetching functions and fetches 
-      sentiment data every hours."""
+   """
+    Periodically fetch sentiment data while avoiding synchronization conflicts.
+
+    This function runs an infinite loop that asynchronously fetches sentiment 
+    data every hour. To prevent synchronization issues with other fetching functions, 
+    it initially waits **62 minutes** (3720 seconds) before the first execution, then 
+    continues fetching data every **60 minutes**.
+
+    The sentiment data is retrieved using `fetch_sentiment()`, ensuring timely updates.
+
+    Returns:
+        None: This function runs indefinitely and does not return a value.
+
+    Example:
+        >>> await hourly_sentiment()
+        >>> # The function will continuously fetch sentiment data every hour.
+    """
    wait_time = 3720  
    while True:
       await asyncio.sleep(wait_time) 
@@ -367,31 +435,92 @@ async def hourly_sentiment():
       wait_time = 3600
 
 
+
 async def daily_sentiment():
-   """Fetches sentiment data every day at 20:03""" 
+   """
+    Asynchronously fetch sentiment data every day at 20:03.
+
+    This function runs an infinite loop that waits until the scheduled time (20:03) 
+    before retrieving sentiment data using `fetch_sentiment()`. It calculates 
+    the required sleep duration using `calculate_time()`, ensuring accurate execution 
+    daily.
+
+    Returns:
+        None: This function runs indefinitely and does not return a value.
+
+    Example:
+        >>> await daily_sentiment()
+        >>> # The function will automatically fetch sentiment data every day at 20:03.
+    """
    while True:
       sleeptime = calculate_time()
       await asyncio.sleep(sleeptime)
       await fetch_sentiment()
       
+
       
-async def fetch_stack(): 
-   """Concurrently fetches data on btc, eth and the market"""
+async def fetch_stack():
+   """
+    Asynchronously fetch market and cryptocurrency data every five minutes.
+
+    This function concurrently retrieves market data, Bitcoin data, and Ethereum data 
+    using asynchronous tasks. It ensures efficiency by utilizing non-blocking execution 
+    through `asyncio.create_task()`. To maintain precise measurement intervals, it calculates 
+    elapsed time dynamically and adjusts the sleep duration accordingly.
+
+    Data Sources:
+        - `fetch_marketdata()`: Retrieves overall market metrics.
+        - `fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data')`: Fetches Bitcoin-specific data.
+        - `fetch_coindata(url_eth, 'eth', 'eth_data')`: Fetches Ethereum-specific data.
+
+    Timing Mechanism:
+        - Uses `time.monotonic()` to measure execution time.
+        - Adjusts the sleep interval dynamically to compensate for processing time.
+        - Ensures updates occur every **300 seconds (5 minutes)** with high accuracy.
+
+    Returns:
+        None: This function runs indefinitely and does not return a value.
+
+    Example:
+        >>> await fetch_stack()
+        >>> # The function continuously fetches and updates market data every five minutes.
+    """
+   precise_time = datetime.datetime.now().second
+  
    while True:
      start_time = time.monotonic()
-    
      asyncio.create_task(fetch_marketdata())
-     asyncio.create_task(fetch_bitcoin())            
-     asyncio.create_task(fetch_eth())
-    
+     asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
+     asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
      elapsed = time.monotonic() - start_time
-    
+   
+     current_time = datetime.datetime.now().second
+     if current_time != precise_time or current_time != (precise_time - 1):
+        elapsed += 0.5
      await asyncio.sleep(300 - elapsed)
 
 
+
 async def main():
-   """Gathers all tasks in a concurrent main event loop, delays if necessary"""
-   starting_delay = delay()
+   """
+    Run the main event loop to manage concurrent tasks.
+
+    This function initializes the program by introducing a delay (if necessary) using `start_delay()`, 
+    ensuring smooth execution without conflicts. After retrieving sentiment data, it concurrently gathers 
+    multiple asynchronous tasks using `asyncio.gather()`, enabling efficient execution of:
+
+        - `fetch_stack()`: Fetches market, Bitcoin, and Ethereum data every five minutes.
+        - `daily_sentiment()`: Retrieves sentiment data once a day at 20:03.
+        - `hourly_sentiment()`: Fetches sentiment data every hour while avoiding synchronization issues.
+
+    Returns:
+        None: The function runs indefinitely, managing all concurrent tasks.
+
+    Example:
+        >>> await main()
+        >>> # This will continuously run all fetching functions within the event loop.
+   """
+   starting_delay = start_delay()
    await asyncio.sleep(starting_delay)
    await fetch_sentiment()
    await asyncio.gather(
@@ -400,6 +529,8 @@ async def main():
       hourly_sentiment(),
    )
  
+
+
 if __name__ == '__main__':
  
  asyncio.run(main())

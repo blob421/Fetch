@@ -492,11 +492,16 @@ async def fetch_stack():
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
      asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
-     elapsed = time.monotonic() - start_time
-   
+    
      current_time = datetime.datetime.now().second
-     if current_time != precise_time or current_time != (precise_time - 1):
+     elapsed = time.monotonic() - start_time
+    
+     if current_time == precise_time + 1:          # Handles time-drift
         elapsed += 0.5
+    
+     if current_time == precise_time - 1:
+        elapsed -= 0.5
+    
      await asyncio.sleep(300 - elapsed)
 
 

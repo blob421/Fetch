@@ -1,2 +1,3 @@
 sphinx
 aiohttp
+furo

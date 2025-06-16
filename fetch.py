@@ -4,8 +4,8 @@ import datetime
 import asyncio
 import aiohttp
 import time
-
 import os
+
 path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
 with open(path, 'r') as file:
    headers = json.load(file)

@@ -1,6 +1,7 @@
 Data Sources
 ============
 
+
 Fetch collects cryptocurrency data from the following APIs:
 
 - **Coinstats**: Provides real-time market prices and trends.

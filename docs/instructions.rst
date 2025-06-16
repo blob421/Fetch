@@ -1,7 +1,9 @@
 Getting started
 ===============
 
+
 Setting up your API key
+
 -----------------------
 To use Fetch, you have to get an API key. The process is pretty straightfoward
 and you can easily get one at this address by creating an account:
@@ -14,6 +16,7 @@ Open it and replace this field with your key : YOUR_API_KEY_HERE
 
 Required dependencies
 ----------------------
+
 Required dependencies are included in requirements.txt and must be installed
 in your python environment before proceeding.
 

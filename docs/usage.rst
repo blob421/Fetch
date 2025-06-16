@@ -1,8 +1,10 @@
 About Fetch
 ============
 
+
 Introduction
 ----------------
+
 Fetch is a script designed to collect market-related data on cryptocurrencies, including 
 Bitcoin and Ethereum. It uses an SQLite3 database for storage and excels at time consistency. 
 By leveraging the power of asynchronous programming, Fetch efficiently harnesses threading to
@@ -10,6 +12,7 @@ deliver precise and optimized operations.
 
 How it works
 ----------------
+
 Fetch is an asynchronous program running through a main event loop. It uses the `asyncio` 
 module to run tasks concurrently within the `main()` function. This means that the 
 program continuously executes functions instead of processing them sequentially. Asynchronous 
@@ -17,6 +20,7 @@ operations occur inside the `gather()` function of the `main()` loop.
 
 How it fetches and writes to the database
 -----------------------------------------------
+
 There are three main functions responsible for fetching the data: 
 
 `fetch_coindata()`, `fetch_marketdata()`, and `fetch_sentiment()`.
@@ -30,6 +34,7 @@ This data is then written to the database through the `fetch_marketdata()` funct
 
 The timing process
 -----------------------
+
 When starting `main()`, Fetch first checks the time and will delay execution by one minute using the 
 `start_delay()` function if deemed necessary. This will prevent other asynchronous functions from 
 conflicting with `daily_sentiment()` at 20:03.
@@ -48,6 +53,7 @@ function.
 
 Fail-safe mechanisms
 --------------------------
+
 `fetch_data_with_retry()` is the core function responsible for making requests. It allows for 
 up to five retries before giving up. If an attempt to fetch fails, it notifies the user. This 
 prevents outdated or biased data from being inserted into the database and instead writes
@@ -58,6 +64,7 @@ ensuring consistency even if attempts to fetch were made.
 
 Database operations
 ------------------------
+
 The database consists of three tables: `bitcoin_data`, `eth_data`, and `market_data`.
 The database runs in **WAL (Write-Ahead Logging) mode**, allowing for efficient chunked data movements 
 and optimizing performance. Time measures are taken in a DateTime format and stored in the column

@@ -290,16 +290,6 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
       print(f"{date_time} 'None' values registered {coin}")
       pass
    
-   if "result" in response and len(response["result"]) > 0:
-      price = response["result"][0]["price"]
-      volume = response["result"][0]["volume"]
-      marketCap = response["result"][0]["marketCap"]
-      availableSupply = response["result"][0]["availableSupply"]
-      totalSupply = response["result"][0]["totalSupply"]
-      fullyDilutedValuation = response["result"][0]["fullyDilutedValuation"]
-      priceChange1h = response["result"][0]["priceChange1h"]
-      priceChange1d = response["result"][0]["priceChange1d"]
-      priceChange1w = response["result"][0]["priceChange1w"]
 
    with sqlite3.connect('crypto_data.sqlite') as conn:
     
@@ -319,7 +309,16 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
                       priceChange1w DECIMAL(20, 2))''')
  
       cursor.execute(f'CREATE INDEX IF NOT EXISTS idx_{table_name}_date ON {table_name}(date);')
-   
+    
+      price = response["result"][0]["price"] if response else None
+      volume = response["result"][0]["volume"] if response else None
+      marketCap = response["result"][0]["marketCap"] if response else None
+      availableSupply = response["result"][0]["availableSupply"] if response else None
+      totalSupply = response["result"][0]["totalSupply"] if response else None
+      fullyDilutedValuation = response["result"][0]["fullyDilutedValuation"] if response else None
+      priceChange1h = response["result"][0]["priceChange1h"] if response else None
+      priceChange1d = response["result"][0]["priceChange1d"] if response else None
+      priceChange1w = response["result"][0]["priceChange1w"] if response else None
 
  except json.JSONDecodeError as e:
     print(f"{date_time} 'None' values registered {coin} : {e}")
@@ -335,12 +334,12 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
      
  try:
   
-   cursor.execute(f'''INSERT INTO {table_name} (date, price, volume, marketCap,
+   cursor.executemany(f'''INSERT INTO {table_name} (date, price, volume, marketCap,
     availableSupply, totalSupply, fullyDilutedValuation, priceChange1h,
     priceChange1d, priceChange1w)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', (date, price, volume, marketCap,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', [(date, price, volume, marketCap,
     availableSupply, totalSupply, fullyDilutedValuation, priceChange1h, priceChange1d,
-    priceChange1w))
+    priceChange1w)])
                        
    conn.commit()
       

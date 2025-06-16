@@ -5,8 +5,10 @@ import asyncio
 import aiohttp
 import time
 
-with open('ApiKey.txt', 'r') as file:   #Reads api-key from file 
-    headers = json.load(file)
+import os
+path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
+with open(path, 'r') as file:
+   headers = json.load(file)
 
 url_btc = "https://openapiv1.coinstats.app/coins?currency=USD&name=bitcoin&symbol=BTC"
 url_eth = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symbol=ETH"

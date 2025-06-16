@@ -6,7 +6,7 @@ Introduction
 Fetch is a script designed to collect market-related data on cryptocurrencies, including 
 Bitcoin and Ethereum. It uses an SQLite3 database for storage and excels at time consistency. 
 By leveraging the power of asynchronous programming, Fetch efficiently harnesses threading to
-deliver precise and optimized operations.
+deliver precise and optimized operations. 
 
 How it works
 ----------------
@@ -54,7 +54,7 @@ prevents outdated or biased data from being inserted into the database and inste
 `NULL` values. Fetch can also compensates for any accumulated time-overhead by executing its
 `fetch_stack()` function sooner. It ensures time measurements are always taken at the same exact 
 second for every interval. Moreover, time measurements are always proceeded before `fetch_data_with_retry()`,
-enabling consistency even if attempts to fetch were made.
+ensuring consistency even if attempts to fetch were made.
 
 Database operations
 ------------------------

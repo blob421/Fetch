@@ -3,8 +3,8 @@ Getting started
 
 
 Setting up your API key
-
 -----------------------
+
 To use Fetch, you have to get an API key. The process is pretty straightfoward
 and you can easily get one at this address by creating an account:
 

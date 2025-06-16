@@ -8,10 +8,10 @@ sys.path.insert(0, os.path.abspath(".."))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Home'
-copyright = '2025, Blob421'
-author = 'Blob421'
-release = 'v1'
+project = "Fetch's"
+copyright = '2025, blob421'
+author = 'blob421'
+release = ''
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

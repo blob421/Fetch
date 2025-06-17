@@ -26,7 +26,7 @@ This program requires Python.
 - With your python environment activated in the terminal:
 
    - 1. Navigate to the directory where `requirements.txt` is located. 
-         e.g. cd /desktop/project
+        e.g. cd /desktop/project
 
    - 2. pip install -r requirements.txt 
 

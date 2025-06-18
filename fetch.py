@@ -473,7 +473,7 @@ async def daily_sentiment():
       
 async def fetch_stack():
    """
-    Asynchronously fetch market and cryptocurrency data every five minutes, aligned to a precise interval.
+    Asynchronously fetch market and cryptocurrency data every five minutes, aligned to a precise monotonic interval.
 
     This coroutine repeatedly launches asynchronous tasks to fetch global market metrics,
     Bitcoin data, and Ethereum data. It uses non-blocking execution via `asyncio.create_task()`

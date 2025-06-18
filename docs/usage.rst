@@ -31,8 +31,8 @@ also managed by three scheduled coroutines:
  - `fetch_stack()`,  `hourly_sentiment()`  and  `daily_sentiment()`.
     
 > Note: `fetch_sentiment()` is the only fetching function that does not write to the database.
- Instead, it fetches data and stores it globally to save ressources. Values are then passed 
- through the `fetch_marketdata()` function. 
+Instead, it fetches data and stores it globally to save ressources. Values are then passed 
+through the `fetch_marketdata()` function. 
 
 
 Timing Accuracy and System Clock Drift

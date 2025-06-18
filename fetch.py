@@ -24,16 +24,16 @@ async def fetch_data_with_retry(url: str, headers: dict, max_retries: int = 5, w
     retries up to `max_retries` times, waiting `wait_time` seconds between attempts.
 
     Args:
-        url (str): The API endpoint to request data from.
-        headers (dict): A dictionary containing HTTP headers for the request.
-        max_retries (int, optional): The number of retry attempts in case of failure. Defaults to 5.
-        wait_time (int, optional): The time (in seconds) to wait between retries. Defaults to 10.
+        - url (str): The API endpoint to request data from.
+        - headers (dict): A dictionary containing HTTP headers for the request.
+        - max_retries (int, optional): The number of retry attempts in case of failure. Defaults to 5.
+        - wait_time (int, optional): The time (in seconds) to wait between retries. Defaults to 10.
 
     Returns:
-        dict or None: The parsed JSON response as a dictionary if successful, otherwise `None`.
+        - dict or None: The parsed JSON response as a dictionary if successful, otherwise `None`.
 
     Raises:
-        aiohttp.ClientError: If an issue occurs during the request.
+        - aiohttp.ClientError: If an issue occurs during the request.
     
     Example:
         >>> response = await fetch_data_with_retry("https://api.example.com/data", headers={"Authorization": "Bearer token"})
@@ -68,13 +68,13 @@ async def fetch_sentiment():
  The function uses `fetch_data_with_retry()` to handle retries in case of failures.
 
  Global Variables:
-    fng_name (str or None): Sentiment classification (e.g., "Greed", "Fear").
-    fng_value (int or None): Sentiment score ranging from 0 to 100.
+    - fng_name (str or None): Sentiment classification (e.g., "Greed", "Fear").
+    - fng_value (int or None): Sentiment score ranging from 0 to 100.
 
  Raises:
-    json.JSONDecodeError: If the response JSON parsing fails.
-    IndexError, KeyError: If expected fields are missing in the response data.
-    Exception: For any other unexpected errors.
+    - json.JSONDecodeError: If the response JSON parsing fails.
+    - IndexError, KeyError: If expected fields are missing in the response data.
+    - Exception: For any other unexpected errors.
 
  Example:
     >>> await fetch_sentiment()
@@ -125,8 +125,8 @@ async def fetch_marketdata():
     the Fear & Greed Index is included in the database.
 
     Global Variables:
-        fng_name (str or None): Sentiment classification (e.g., "Extreme Fear", "Greed").
-        fng_value (int or None): Sentiment score ranging from 0 to 100.
+        - fng_name (str or None): Sentiment classification (e.g., "Extreme Fear", "Greed").
+        - fng_value (int or None): Sentiment score ranging from 0 to 100.
 
     Database Schema:
         - date (DATETIME): Timestamp of the recorded data.
@@ -145,9 +145,9 @@ async def fetch_marketdata():
         - Includes a database transaction with WAL mode to optimize performance.
 
     Raises:
-        json.JSONDecodeError: If the response data cannot be parsed correctly.
-        IndexError, KeyError: If expected fields are missing in the response.
-        sqlite3.Error: If an issue occurs during database insertion.
+        - json.JSONDecodeError: If the response data cannot be parsed correctly.
+        - IndexError, KeyError: If expected fields are missing in the response.
+        - sqlite3.Error: If an issue occurs during database insertion.
 
     Example:
         >>> await fetch_marketdata()
@@ -239,9 +239,9 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
     table.
 
     Args:
-        url (str): The API endpoint to fetch cryptocurrency data.
-        coin (str): The name of the cryptocurrency being retrieved.
-        table_name (str): The database table where the data will be stored.
+        - url (str): The API endpoint to fetch cryptocurrency data.
+        - coin (str): The name of the cryptocurrency being retrieved.
+        - table_name (str): The database table where the data will be stored.
 
     Database Schema:
         - date (DATETIME): Timestamp of the recorded data.
@@ -362,7 +362,7 @@ def calculate_time() -> float:
     the same time on the next day.
 
     Returns:
-        float: The number of seconds left until 20:03.
+        - float: The number of seconds left until 20:03.
 
     Example:
         >>> calculate_time()
@@ -387,7 +387,7 @@ def start_delay() -> int:
     ends in '3' or '8', it delays the start by 60 seconds; otherwise, it starts immediately.
 
     Returns:
-        int: The number of seconds to wait (either 60 or 0).
+        - int: The number of seconds to wait (either 60 or 0).
 
     Example:
         >>> delay = start_delay()
@@ -428,7 +428,7 @@ async def hourly_sentiment():
         - Applies `max(0, ...)` to guard against negative sleep durations in case of minor execution delays.
 
     Returns:
-        None: This function runs indefinitely and produces no return value.
+        - None: This function runs indefinitely and produces no return value.
 
     Example:
         >>> await hourly_sentiment()
@@ -458,7 +458,7 @@ async def daily_sentiment():
     daily.
 
     Returns:
-        None: This function runs indefinitely and does not return a value.
+        - None: This function runs indefinitely and does not return a value.
 
     Example:
         >>> await daily_sentiment()
@@ -491,7 +491,7 @@ async def fetch_stack():
         - `fetch_coindata(url_eth, 'eth', 'eth_data')`: Fetches Ethereum-specific data.
 
     Returns:
-        None: This function runs indefinitely without returning a value.
+        - None: This function runs indefinitely without returning a value.
 
     Example:
         >>> await fetch_stack()
@@ -525,7 +525,7 @@ async def main():
         - `hourly_sentiment()`: Fetches sentiment data every hour while avoiding synchronization issues.
 
     Returns:
-        None: The function runs indefinitely, managing all concurrent tasks.
+        - None: The function runs indefinitely, managing all concurrent tasks.
 
     Example:
         >>> await main()

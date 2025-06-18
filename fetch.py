@@ -412,28 +412,37 @@ fng_name = None
 
 
 async def hourly_sentiment():
+   
    """
-    Periodically fetch sentiment data while avoiding synchronization conflicts.
+    Asynchronously fetch sentiment data every hour, aligned to a stable monotonic schedule.
 
-    This function runs an infinite loop that asynchronously fetches sentiment 
-    data every hour. To prevent synchronization issues with other fetching functions, 
-    it initially waits **62 minutes** (3720 seconds) before the first execution, then 
-    continues fetching data every **60 minutes**.
+    This coroutine introduces a 62-minute (3720 seconds) initial delay before its first
+    execution to avoid overlap with other data-fetching routines. After the initial wait,
+    it triggers `fetch_sentiment()` precisely every 3600 seconds (1 hour), using 
+    `time.monotonic()` to ensure consistent interval alignment without being affected by 
+    system clock adjustments (e.g., NTP corrections or wall clock drift).
 
-    The sentiment data is retrieved using `fetch_sentiment()`, ensuring timely updates.
+    Timing Strategy:
+        - Uses `time.monotonic()` for drift-free scheduling.
+        - Calculates sleep time relative to the next target tick (`next_iter`).
+        - Applies `max(0, ...)` to guard against negative sleep durations in case of minor execution delays.
 
     Returns:
-        None: This function runs indefinitely and does not return a value.
+        None: This function runs indefinitely and produces no return value.
 
     Example:
         >>> await hourly_sentiment()
-        >>> # The function will continuously fetch sentiment data every hour.
-    """
-   wait_time = 3720  
+        >>> # Fetches sentiment data every hour with a 62-minute offset from start.
+   """
+
+   interval = 3600
+   next_iter = time.monotonic() + 3720
    while True:
-      await asyncio.sleep(wait_time) 
+      await asyncio.sleep(sleep_time) 
       await fetch_sentiment()
-      wait_time = 3600
+      next_iter += interval
+      sleep_time = max(0, next_iter - time.monotonic())
+    
 
 
 
@@ -494,7 +503,7 @@ async def fetch_stack():
      asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
      asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
     
-     next_iter += interval                         # Adds 5 minutes to next_iter time
+     next_iter += interval                              # Adds 5 minutes to next_iter time
      sleep_time = max(0, next_iter - time.monotonic())  # Time left until next_iter
                                                                             
      await asyncio.sleep(sleep_time)

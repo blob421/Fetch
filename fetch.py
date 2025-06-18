@@ -462,70 +462,42 @@ async def daily_sentiment():
       
 async def fetch_stack():
    """
-    Asynchronously fetch market and cryptocurrency data every five minutes.
+    Asynchronously fetch market and cryptocurrency data every five minutes, aligned to a precise interval.
 
-    This function concurrently retrieves market data, Bitcoin data, and Ethereum data 
-    using asynchronous tasks. It ensures efficiency by utilizing non-blocking execution 
-    through `asyncio.create_task()`. To maintain precise measurement intervals, it calculates 
-    elapsed time dynamically and adjusts the sleep duration accordingly.
+    This coroutine repeatedly launches asynchronous tasks to fetch global market metrics,
+    Bitcoin data, and Ethereum data. It uses non-blocking execution via `asyncio.create_task()`
+    to ensure efficient and concurrent data retrieval.
 
+    Timing Strategy:
+        - Anchors execution to fixed 5-minute intervals using the system clock (`time.time()`).
+        - Calculates the absolute time of the next iteration (`next_iter`) and waits until that moment.
+        - Uses `max(0, next_iter - time.time())` to ensure non-negative sleep durations,
+          avoiding drift accumulation over time.
+    
     Data Sources:
         - `fetch_marketdata()`: Retrieves overall market metrics.
         - `fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data')`: Fetches Bitcoin-specific data.
         - `fetch_coindata(url_eth, 'eth', 'eth_data')`: Fetches Ethereum-specific data.
 
-    Timing Mechanism:
-        - Uses `time.monotonic()` to measure execution time.
-        - Adjusts the sleep interval dynamically to compensate for processing time.
-        - Ensures updates occur every **300 seconds (5 minutes)** with high accuracy.
-
     Returns:
-        None: This function runs indefinitely and does not return a value.
+        None: This function runs indefinitely without returning a value.
 
     Example:
         >>> await fetch_stack()
-        >>> # The function continuously fetches and updates market data every five minutes.
-    """
-   precise_time = datetime.datetime.now().second
-  
+        >>> # Continuously fetches data every 300 seconds (5 minutes), precisely aligned to real time.
+   """
+   next_iter = time.monotonic() # Next iteration is now
+   interval = 300
    while True:
-     start_time = time.monotonic()
+     
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
      asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
     
-     current_time = datetime.datetime.now().second
-     elapsed = time.monotonic() - start_time
-    
-     # Handling time-drift                                        
-     if precise_time == 0:                  # Edge case for if the second is "0"
-        
-        if current_time == precise_time:    # Skips other checks if time is accurate    
-           pass
-                           
-        elif current_time == precise_time + 1:
-           elapsed += 0.5
-
-        elif current_time == 59:
-           elapsed -= 0.5
-        
-        elif current_time == 58:
-           elapsed -= 1.5
-       
-        
-     elif current_time == precise_time:      # Skips other checks if time is accurate
-        pass
-    
-     elif current_time == precise_time + 1:         
-        elapsed += 0.5
-     
-     elif current_time == precise_time - 1:
-        elapsed -= 0.5
-
-     elif current_time == precise_time - 2:
-        elapsed -= 1.5
-    
-     await asyncio.sleep(300 - elapsed)
+     next_iter += interval                         # Adds 5 minutes to next_iter time
+     sleep_time = max(0, next_iter - time.monotonic())  # Time left until next_iter
+                                                                            
+     await asyncio.sleep(sleep_time)
 
 
 

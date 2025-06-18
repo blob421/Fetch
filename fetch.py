@@ -436,13 +436,15 @@ async def hourly_sentiment():
    """
 
    interval = 3600
-   next_iter = time.monotonic() + 3720
-   while True:
-      await asyncio.sleep(sleep_time) 
+   next_iter = time.monotonic() + 3720               # Next iteration is in 1 hour 2 minutes
+   sleep_time = max(0, next_iter - time.monotonic())
+   await asyncio.sleep(sleep_time)                   # Initial sleep
+  
+   while True:   
       await fetch_sentiment()
-      next_iter += interval
+      next_iter += interval                          # Adds 60 minutes to the next_iter time 
       sleep_time = max(0, next_iter - time.monotonic())
-    
+      await asyncio.sleep(sleep_time) 
 
 
 

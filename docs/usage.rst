@@ -25,16 +25,14 @@ There are three main functions responsible for fetching data:
 
  - `fetch_coindata()`,  `fetch_marketdata()`,  and  `fetch_sentiment()`. 
 
-They use a core function named `fetch_data_with_retry()` to handle their requests. They are 
+They all use a core function named `fetch_data_with_retry()` to handle their requests. They are 
 also managed by three scheduled coroutines:
 
- - `fetch_stack()`:
-       - Runs every five minutes and concurrently calls `fetch_coindata()` and 
-        `fetch_marketdata()`
-
- - `hourly_sentiment()` and `daily_sentiment()`:
-       - call `fetch_sentiment()` every hour and every day, respectively.
-
+ - `fetch_stack()`,  `hourly_sentiment()`  and  `daily_sentiment()`.
+    
+`fetch_stack()` runs every five minutes and concurrently calls `fetch_coindata()` and 
+`fetch_marketdata()`. While `hourly_sentiment()` and `daily_sentiment()` call `fetch_sentiment()`.
+ 
 > Note: `fetch_sentiment()` is the only fetching function that does not write to the database.
   Instead, it fetches data and stores it globally to save ressources. Values are then passed 
   through the `fetch_marketdata()` function. 

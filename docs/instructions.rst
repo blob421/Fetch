@@ -4,12 +4,11 @@ Getting started
 Setting up your API key
 -----------------------
 
-To use Fetch, you have to get an API key. The process is pretty straightfoward
-and you can easily get one at this address by creating an account:
+To use Fetch, you need an API key. Follow this link and create an account on Coinstats Open API:
 
 https://openapi.coinstats.app/
 
-Next, there is a file named ApiKey.txt in the root folder of the repository.
+Your API key will be on your dashboard. Once you are done, go to the file named ApiKey.txt in the root folder of the repository.
 Open it and replace this field with your key : YOUR_API_KEY_HERE 
 
 
@@ -29,5 +28,3 @@ This program requires Python.
         e.g. cd /desktop/project
 
    - 2. pip install -r requirements.txt 
-
-

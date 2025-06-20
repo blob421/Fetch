@@ -1,6 +1,6 @@
 import sqlite3
 import json
-import datetime
+from datetime import datetime, timezone, timedelta
 import asyncio
 import aiohttp
 import time
@@ -82,7 +82,7 @@ async def fetch_sentiment():
     "Greed", 74
  """
  global fng_name, fng_value
- date_time = datetime.datetime.now() 
+ date_time = datetime.now(timezone.utc) 
  fng_name, fng_value = None, None
 
  url2 = 'https://api.alternative.me/fng/?limit=2&format=json'
@@ -163,7 +163,7 @@ async def fetch_marketdata():
     btcDominanceChange = None
 
     url = "https://openapiv1.coinstats.app/markets"
-    date_time = datetime.datetime.now()
+    date_time = datetime.now(timezone.utc) 
 
     try:
     
@@ -280,7 +280,7 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
  priceChange1d = None
  priceChange1w = None
 
- date_time = datetime.datetime.now()
+ date_time = datetime.now(timezone.utc) 
 
  try:
    
@@ -368,11 +368,11 @@ def calculate_time() -> float:
         >>> calculate_time()
         45782.5  # Time left in seconds
  """
- time_now = datetime.datetime.now()
- target_time = datetime.datetime.now().replace(hour=20, minute=3, second=2)
+ time_now = datetime.now(timezone.utc) 
+ target_time = datetime.now(timezone.utc).replace(hour=0, minute=3, second=2)
  
  if time_now > target_time:                   
-    target_time += datetime.timedelta(days=1)
+    target_time += timedelta(days=1)
  
  return (target_time - time_now).total_seconds()
 
@@ -393,7 +393,7 @@ def start_delay() -> int:
         >>> delay = start_delay()
         >>> print(f"Waiting {delay} seconds before starting.")
    """
-   minutes = str(datetime.datetime.now().minute)
+   minutes = str(datetime.now().minute)
 
    if minutes.endswith("3") or minutes.endswith("8"):
       print("Starting in 1 minute ...") 

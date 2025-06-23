@@ -353,16 +353,16 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
 
 def calculate_time() -> float:
  """
-    Calculate the time remaining until 20:03.
+    Calculate the time remaining until 00:03 UTC.
 
     This function determines the number of seconds left until the next scheduled 
-    update at 20:03, ensuring accurate synchronization with Alternative's data updates.
+    update at 00:03, ensuring accurate synchronization with Alternative's data updates.
 
-    If the current time is past 20:03, the function calculates the time remaining until 
+    If the current time is past 00:03, the function calculates the time remaining until 
     the same time on the next day.
 
     Returns:
-        - float: The number of seconds left until 20:03.
+        - float: The number of seconds left until 00:03.
 
     Example:
         >>> calculate_time()
@@ -450,9 +450,9 @@ async def hourly_sentiment():
 
 async def daily_sentiment():
    """
-    Asynchronously fetch sentiment data every day at 20:03.
+    Asynchronously fetch sentiment data every day at 00:03 UTC.
 
-    This function runs an infinite loop that waits until the scheduled time (20:03) 
+    This function runs an infinite loop that waits until the scheduled time (00:03) 
     before retrieving sentiment data using `fetch_sentiment()`. It calculates 
     the required sleep duration using `calculate_time()`, ensuring accurate execution 
     daily.
@@ -462,7 +462,7 @@ async def daily_sentiment():
 
     Example:
         >>> await daily_sentiment()
-        >>> # The function will automatically fetch sentiment data every day at 20:03.
+        >>> # The function will automatically fetch sentiment data every day at 00:03.
     """
    while True:
       sleeptime = calculate_time()
@@ -521,7 +521,7 @@ async def main():
     multiple asynchronous tasks using `asyncio.gather()`, enabling efficient execution of:
 
         - `fetch_stack()`: Fetches market, Bitcoin, and Ethereum data every five minutes.
-        - `daily_sentiment()`: Retrieves sentiment data once a day at 20:03.
+        - `daily_sentiment()`: Retrieves sentiment data once a day at 00:03 UTC.
         - `hourly_sentiment()`: Fetches sentiment data every hour while avoiding synchronization issues.
 
     Returns:

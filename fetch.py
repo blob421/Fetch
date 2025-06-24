@@ -414,29 +414,36 @@ fng_name = None
 async def hourly_sentiment():
    
    """
-    Asynchronously fetch sentiment data every hour, aligned to a stable monotonic schedule.
+    Asynchronously fetches sentiment data every hour, aligned to a monotonic schedule with
+    drift compensation.
 
-    This coroutine introduces a 62-minute (3720 seconds) initial delay before its first
-    execution to avoid overlap with other data-fetching routines. After the initial wait,
-    it triggers `fetch_sentiment()` precisely every 3600 seconds (1 hour), using 
-    `time.monotonic()` to ensure consistent interval alignment without being affected by 
-    system clock adjustments (e.g., NTP corrections or wall clock drift).
+    This coroutine introduces a 62-minute (3720 seconds) initial delay before its first execution 
+    to avoid overlap with other data-fetching routines. After the initial wait, it calls 
+    `fetch_sentiment()` every 3600 seconds (1 hour), using `time.monotonic()` to ensure interval 
+    consistency and stability—even in the presence of system clock adjustments like NTP corrections.
+
+    To preserve temporal alignment, the loop compares wall-clock and monotonic elapsed time:
+        - If a significant discrepancy is detected (> ±0.1s), a drift correction is applied.
+        - The correction is handled by subtracting the previous drift from `next_iter` 
+          and applying the newly observed drift, keeping the cadence steady.
 
     Timing Strategy:
-        - Uses `time.monotonic()` for drift-free scheduling.
-        - Calculates sleep time relative to the next target tick (`next_iter`).
-        - Applies `max(0, ...)` to guard against negative sleep durations in case of minor execution delays.
+        - Monotonic-based interval pacing avoids issues from wall-clock adjustments.
+        - Dynamically adjusts for system time drift via comparative delta tracking.
+        - Uses `max(0, ...)` to ensure non-negative sleep intervals.
 
     Returns:
-        - None: This function runs indefinitely and produces no return value.
+        None. This coroutine runs indefinitely.
 
     Example:
         >>> await hourly_sentiment()
-        >>> # Fetches sentiment data every hour with a 62-minute offset from start.
-   """
+        # Starts after a 62-minute delay, then fetches sentiment data every hour precisely.
+    """
      
   
    interval = 3600
+   time_drift = 0
+
    next_iter = time.monotonic() + 3720                # Next iteration is in 1 hour 2 minutes
    sleep_time = max(0, next_iter - time.monotonic())
    await asyncio.sleep(sleep_time)                    # Initial sleep
@@ -449,14 +456,15 @@ async def hourly_sentiment():
         
         current_time = datetime.now()
         current_second = current_time.second
+        current_monotonic = time.monotonic()
 
         await fetch_sentiment()
 
         if current_second != starting_time_second :
-            
-            wall_elapsed = (current_time - starting_time).total_seconds
-            mono_elapsed = (time.monotonic() - starting_monotonic)
-            time_drift = wall_elapsed - mono_elapsed
+            next_iter -= time_drift
+            wall_elapsed = (current_time - starting_time).total_seconds()
+            mono_elapsed = current_monotonic - starting_monotonic
+            time_drift = mono_elapsed - wall_elapsed
 
             if abs(time_drift) > 0.1:
                 next_iter += time_drift
@@ -492,51 +500,60 @@ async def daily_sentiment():
       
 async def fetch_stack():
    """
-    Asynchronously fetch market and cryptocurrency data every five minutes, aligned to a precise monotonic interval.
+    Asynchronously fetches market and cryptocurrency data every five minutes using a monotonic,
+    drift-correcting schedule.
 
-    This coroutine repeatedly launches asynchronous tasks to fetch global market metrics,
-    Bitcoin data, and Ethereum data. It uses non-blocking execution via `asyncio.create_task()`
-    to ensure efficient and concurrent data retrieval.
+    This coroutine launches asynchronous data-gathering tasks for global market metrics,
+    Bitcoin, and Ethereum at consistent 300-second intervals. It uses `time.monotonic()` for 
+    timekeeping to avoid inaccuracies caused by system clock changes (e.g., NTP adjustments).
+
+    Drift Handling:
+        - Compares monotonic and wall-clock elapsed time to detect time drift.
+        - Subtracts previously applied drift before recalculating the current one.
+        - Applies a correction only if the drift exceeds ±0.1s, preserving interval accuracy
+          while avoiding jitter from minor fluctuations.
 
     Timing Strategy:
-        - Anchors execution to fixed 5-minute intervals using the system clock (`time.time()`).
-        - Calculates the absolute time of the next iteration (`next_iter`) and waits until that moment.
-        - Uses `max(0, next_iter - time.time())` to ensure non-negative sleep durations,
-          avoiding drift accumulation over time.
-    
+        - Anchors execution to a monotonic interval, updated each cycle.
+        - Sleep duration is calculated relative to `next_iter` to ensure consistent pacing.
+        - `max(0, ...)` is used to prevent negative sleep values in edge cases.
+
     Data Sources:
         - `fetch_marketdata()`: Retrieves overall market metrics.
         - `fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data')`: Fetches Bitcoin-specific data.
         - `fetch_coindata(url_eth, 'eth', 'eth_data')`: Fetches Ethereum-specific data.
 
     Returns:
-        - None: This function runs indefinitely without returning a value.
+        None. This coroutine runs indefinitely.
 
     Example:
         >>> await fetch_stack()
-        >>> # Continuously fetches data every 300 seconds (5 minutes), precisely aligned to real time.
-   """
+        # Repeatedly fetches and processes data every 5 minutes with monotonic precision and drift correction.
+    """
    
    interval = 300
+   time_drift = 0
 
    starting_time = datetime.now()
    starting_time_second = starting_time.second
    starting_monotonic = time.monotonic()           
-   next_iter = time.monotonic()                    # Next iteration is now
+   next_iter = starting_monotonic                  # Next iteration is now
 
    while True:
      
      current_time = datetime.now()
      current_second = current_time.second
-    
+     current_monotonic = time.monotonic()
+
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
      asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
 
      if current_second != starting_time_second :
-        wall_elapsed = (current_time - starting_time).total_seconds
-        mono_elapsed = (time.monotonic() - starting_monotonic)
-        time_drift = wall_elapsed - mono_elapsed
+        next_iter -= time_drift
+        wall_elapsed = (current_time - starting_time).total_seconds()
+        mono_elapsed = current_monotonic - starting_monotonic
+        time_drift = mono_elapsed - wall_elapsed
 
         if abs(time_drift) > 0.1:
             next_iter += time_drift

@@ -1,5 +1,4 @@
-
-Data Imputation Utility for Cryptocurrency Datasets
+About f-null
 ===================================================
 
 This module provides a command-line interface for correcting missing or incomplete rows

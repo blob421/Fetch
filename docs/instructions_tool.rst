@@ -1,5 +1,8 @@
-Dependencies
--------------
+Getting started
+================
+
+Required dependencies
+---------------------
 
  - Fetch main module
  - Python 3.x

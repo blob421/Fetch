@@ -1,5 +1,5 @@
-f-null tool
-=====
+Data Imputation Utility
+=========================
 
 .. toctree::
    :maxdepth: 3

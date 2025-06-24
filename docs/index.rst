@@ -10,7 +10,8 @@ Welcome to Fetch's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   modules
+   fetch
+   fnull
 
 Indices and tables
 ==================

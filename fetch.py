@@ -434,17 +434,36 @@ async def hourly_sentiment():
         >>> await hourly_sentiment()
         >>> # Fetches sentiment data every hour with a 62-minute offset from start.
    """
-
-   interval = 3600
-   next_iter = time.monotonic() + 3720               # Next iteration is in 1 hour 2 minutes
-   sleep_time = max(0, next_iter - time.monotonic())
-   await asyncio.sleep(sleep_time)                   # Initial sleep
+     
   
+   interval = 3600
+   next_iter = time.monotonic() + 3720                # Next iteration is in 1 hour 2 minutes
+   sleep_time = max(0, next_iter - time.monotonic())
+   await asyncio.sleep(sleep_time)                    # Initial sleep
+              
+   starting_time = datetime.now()
+   starting_time_second = starting_time.second
+   starting_monotonic = time.monotonic()     
+
    while True:   
-      await fetch_sentiment()
-      next_iter += interval                          # Adds 60 minutes to the next_iter time 
-      sleep_time = max(0, next_iter - time.monotonic())
-      await asyncio.sleep(sleep_time) 
+        
+        current_time = datetime.now()
+        current_second = current_time.second
+
+        await fetch_sentiment()
+
+        if current_second != starting_time_second :
+            
+            wall_elapsed = (current_time - starting_time).total_seconds
+            mono_elapsed = (time.monotonic() - starting_monotonic)
+            time_drift = wall_elapsed - mono_elapsed
+
+            if abs(time_drift) > 0.1:
+                next_iter += time_drift
+
+        next_iter += interval                             # Adds 60 minutes to the next_iter time 
+        sleep_time = max(0, next_iter - time.monotonic())
+        await asyncio.sleep(sleep_time) 
 
 
 
@@ -497,17 +516,34 @@ async def fetch_stack():
         >>> await fetch_stack()
         >>> # Continuously fetches data every 300 seconds (5 minutes), precisely aligned to real time.
    """
-   next_iter = time.monotonic() # Next iteration is now
+   
    interval = 300
+
+   starting_time = datetime.now()
+   starting_time_second = starting_time.second
+   starting_monotonic = time.monotonic()           
+   next_iter = time.monotonic()                    # Next iteration is now
+
    while True:
      
+     current_time = datetime.now()
+     current_second = current_time.second
+    
      asyncio.create_task(fetch_marketdata())
      asyncio.create_task(fetch_coindata(url_btc, 'bitcoin', 'bitcoin_data'))
      asyncio.create_task(fetch_coindata(url_eth, 'eth', 'eth_data'))
+
+     if current_second != starting_time_second :
+        wall_elapsed = (current_time - starting_time).total_seconds
+        mono_elapsed = (time.monotonic() - starting_monotonic)
+        time_drift = wall_elapsed - mono_elapsed
+
+        if abs(time_drift) > 0.1:
+            next_iter += time_drift
     
      next_iter += interval                              # Adds 5 minutes to next_iter time
-     sleep_time = max(0, next_iter - time.monotonic())  # Time left until next_iter
-                                                                            
+                                                      
+     sleep_time = max(0, next_iter - time.monotonic())  # Time left until next_iter                                                                         
      await asyncio.sleep(sleep_time)
 
 

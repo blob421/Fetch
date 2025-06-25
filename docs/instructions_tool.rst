@@ -4,15 +4,14 @@ Getting started
 Required dependencies
 ---------------------
 
- - Fetch main module
+ - Fetch
  - Python 3.x
- - sqlite3 (standard library)
- - crypto_data.sqlite database containing the relevant tables and structure.
+ - crypto_data.sqlite 
 
 Usage
 ------
 
-Run the script from the command line and follow the on-screen instructions:
+ Run the script from the command line and follow the on-screen instructions:
 
  1. $ python fill_null.py
  2. Select an option ranging from 1 to 5.

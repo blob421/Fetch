@@ -24,23 +24,23 @@ This program requires Python.
 
 - With your python environment activated in the terminal:
 
-   - 1. Navigate to the directory where `requirements.txt` is located. 
+   1. Navigate to the directory where `requirements.txt` is located. 
         e.g. cd /desktop/project
 
-   - 2. pip install -r requirements.txt 
+   2. pip install -r requirements.txt 
   
 
 Using the scheduler to start Fetch
 ------------------------------------
 
-There are two options to start Fetch:
+There are two options to start Fetch :
 
 1. **Direct Start**: Run `fetch.py` to begin immediately.
 2. **Scheduled Start**: Run `scheduled_start.py` to launch Fetch at a specific time.
 
-**Example — to start Fetch at 20:05:00.0:**
+**Example — starting Fetch at 20:05:00.0 :**
 
- - 1. Enter the hour : `"20"`
- - 2. Enter the minute : `"5"` or `"05"`
- - 3. Enter the second : `"0"`
- - 4. Enter the microsecond : `"0"`
+  1. Enter the hour : `"20"`
+  2. Enter the minute : `"5"` or `"05"`
+  3. Enter the second : `"0"`
+  4. Enter the microsecond : `"0"`

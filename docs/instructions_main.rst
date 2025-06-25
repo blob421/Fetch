@@ -41,7 +41,7 @@ There is two options to start Fetch:
 The later will prompt the user for a precise launch time.
 
 **Example — to start Fetch at 20:05:00.00:**
- - Enter the hour: `"20"`
- - Enter the minute: `"5"` or `"05"`
- - Enter the second: `"0"`
- - Enter the microsecond: `"0"`
+1. Enter the hour : `"20"`
+2. Enter the minute : `"5"` or `"05"`
+3. Enter the second : `"0"`
+4. Enter the microsecond : `"0"`

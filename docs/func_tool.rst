@@ -1,7 +1,7 @@
 Functions
 ============
 
-.. automodule:: f_null
+.. automodule:: fill_null
    :members:
    :undoc-members:
    :show-inheritance:

@@ -28,3 +28,20 @@ This program requires Python.
         e.g. cd /desktop/project
 
    - 2. pip install -r requirements.txt 
+  
+
+Using the scheduler to start Fetch
+------------------------------------
+
+There is two options to start Fetch:
+
+1. **Direct Start**: Run `fetch.py` to begin immediately.
+2. **Scheduled Start**: Run `scheduled_start.py` to launch Fetch at a specific time.
+
+The later will prompt the user for a precise launch time.
+
+**Example — to start Fetch at 20:05:00.00:**
+ - Enter the hour: `"20"`
+ - Enter the minute: `"5"` or `"05"`
+ - Enter the second: `"0"`
+ - Enter the microsecond: `"0"`

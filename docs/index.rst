@@ -11,7 +11,7 @@ Welcome to Fetch's documentation!
    :caption: Contents:
 
    fetch
-   fnull
+   fill_null
 
 Indices and tables
 ==================

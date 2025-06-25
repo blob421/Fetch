@@ -9,11 +9,11 @@ def which_table():
     the option to apply changes to all tables, or to exit the program.
 
     Returns:
-        - str: The name of the selected table.
-        - 'bitcoin_data'
-        - 'eth_data'
-        - 'market_data'
-        - 'all' (to process every table)
+        - str: The name of the selected table :
+            - 'bitcoin_data'
+            - 'eth_data'
+            - 'market_data'
+            - 'all' (to process every table)
         
     Side Effects:
         - Displays a menu to the console.
@@ -104,11 +104,11 @@ def fill_db(table_name, row_number):
 
     Args:
         - table_name (str): The name of the table to update. Must be one of:
-        - 'market_data'
-        - 'bitcoin_data'
-        - 'eth_data'
+            - 'market_data'
+            - 'bitcoin_data'
+            - 'eth_data'
         - row_number (int): The position (1-based index) of the row to update. This function will 
-            use rows `row_number - 1` and `row_number + 1` to compute mean values.
+          use rows `row_number - 1` and `row_number + 1` to compute mean values.
 
     Returns:
         - None

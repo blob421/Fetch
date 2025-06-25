@@ -9,11 +9,11 @@ def which_table():
     the option to apply changes to all tables, or to exit the program.
 
     Returns:
-        str: The name of the selected table.
-            - 'bitcoin_data'
-            - 'eth_data'
-            - 'market_data'
-            - 'all' (to process every table)
+        - str: The name of the selected table.
+        - 'bitcoin_data'
+        - 'eth_data'
+        - 'market_data'
+        - 'all' (to process every table)
         
     Side Effects:
         - Displays a menu to the console.
@@ -21,7 +21,7 @@ def which_table():
         - Terminates the program with exit code 0 if the user selects Exit (option 5).
 
     Raises:
-        None: All input validation is handled internally. Prompts the user again on invalid input.
+        - None: All input validation is handled internally. Prompts the user again on invalid input.
     """
     print("\nTables:")
     print("1. bitcoin_data")
@@ -73,14 +73,14 @@ def which_row():
     The row number will typically correspond to a position in an ordered dataset.
 
     Returns:
-        int: The validated row number input by the user.
+        - int: The validated row number input by the user.
 
     Side Effects:
         - Displays prompts and error messages in the console.
         - Handles and reprompts on invalid input types.
 
     Raises:
-        None: All exceptions are caught and handled internally.
+        - None: All exceptions are caught and handled internally.
     """
 
     while True: 
@@ -103,27 +103,27 @@ def fill_db(table_name, row_number):
     For all other tables (e.g. `bitcoin_data`, `eth_data`), it interpolates financial and pricing metrics.
 
     Args:
-        table_name (str): The name of the table to update. Must be one of:
-            - 'market_data'
-            - 'bitcoin_data'
-            - 'eth_data'
-        row_number (int): The position (1-based index) of the row to update. This function will 
+        - table_name (str): The name of the table to update. Must be one of:
+        - 'market_data'
+        - 'bitcoin_data'
+        - 'eth_data'
+        - row_number (int): The position (1-based index) of the row to update. This function will 
             use rows `row_number - 1` and `row_number + 1` to compute mean values.
 
     Returns:
-        None
+        - None
 
     Side Effects:
         - Connects to `crypto_data.sqlite` database.
         - Executes an UPDATE statement that modifies one row based on surrounding row values.
 
     Raises:
-        sqlite3.Error: If a database access error occurs.
-        ValueError: If row_number < 2, which would make interpolation impossible.
+        - sqlite3.Error: If a database access error occurs.
+        - ValueError: If row_number < 2, which would make interpolation impossible.
 
     Notes:
-        - Relies on SQLite's `rowid` and assumes the table is chronologically ordered by `date`.
-        - Does not update non-numeric or textual columns (e.g. labels, timestamps).
+        >>> Relies on SQLite's `rowid` and assumes the table is chronologically ordered by `date`.
+        >>> Does not update non-numeric or textual columns (e.g. labels, timestamps).
     """
     if table_name == 'market_data':
 
@@ -239,7 +239,7 @@ def main():
     For "all" tables, it applies the correction across each table listed in `table_list`.
 
     Returns:
-        None
+        - None
 
     Side Effects:
         - Reads user input via the console.
@@ -247,11 +247,11 @@ def main():
         - Prints status messages for each operation.
 
     Raises:
-        None: All user input and operational branches are internally validated.
+        - None: All user input and operational branches are internally validated.
 
     Notes:
-        - The update logic relies on `fill_db()` and assumes tables are sorted chronologically by `date`.
-        - To exit the program, the user can select "Exit" when prompted in the `which_table()` function.
+        >>> The update logic relies on `fill_db()` and assumes tables are sorted chronologically by `date`.
+        >>> To exit the program, the user can select "Exit" when prompted in the `which_table()` function.
     """
     while True:
         

@@ -262,9 +262,9 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
         - Uses WAL (Write-Ahead Logging) mode for optimized database transactions.
 
     Raises:
-        json.JSONDecodeError: If the response data cannot be parsed correctly.
-        IndexError, KeyError: If expected fields are missing in the response.
-        sqlite3.Error: If an issue occurs during database insertion.
+        - json.JSONDecodeError: If the response data cannot be parsed correctly.
+        - IndexError, KeyError: If expected fields are missing in the response.
+        - sqlite3.Error: If an issue occurs during database insertion.
 
     Example:
         >>> await fetch_coindata("https://api.example.com/btc", "Bitcoin", "bitcoin_data")
@@ -433,7 +433,7 @@ async def hourly_sentiment():
         - Uses `max(0, ...)` to ensure non-negative sleep intervals.
 
     Returns:
-        None. This coroutine runs indefinitely.
+        - None. This coroutine runs indefinitely.
 
     Example:
         >>> await hourly_sentiment()

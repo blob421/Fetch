@@ -1,0 +1,10 @@
+__pycache__/
+.env
+.git/
+.fetch_containerized
+DROP TABLE public market
+DROP TABLE public
+f_null
+scheduled_start.py
+scheduled_start.bat
+untitled-2

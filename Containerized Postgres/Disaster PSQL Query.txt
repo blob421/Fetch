@@ -1,0 +1,6 @@
+1. connect db to pgadmin
+2. psql prompt on db 
+3. Enter this to fill the db with a backup csv :
+
+
+\COPY public.bitcoin_data FROM 'C:\Path_to\bitcoin_data.csv' DELIMITER ',' CSV HEADER ENCODING 'UTF8'

@@ -7,11 +7,11 @@ Welcome to Fetch's documentation!
 =================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
    fetch
-   fill_null
+ 
 
 Indices and tables
 ==================

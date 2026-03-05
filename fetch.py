@@ -10,6 +10,15 @@ path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
 with open(path, 'r') as file:
    headers = json.load(file)
 
+
+
+if headers["X-API-KEY"] == "YOUR_API_KEY_HERE":
+   print("")
+   print("Invalid API key. Please place a valid CoinStats API key in apikey.txt .")
+   print("Program exiting ...")
+   os._exit(1)
+
+
 url_btc = "https://openapiv1.coinstats.app/coins?currency=USD&name=bitcoin&symbol=BTC"
 url_eth = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symbol=ETH"
 

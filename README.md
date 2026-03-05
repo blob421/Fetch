@@ -2,3 +2,20 @@ Fetch is a script designed to collect market-related data on cryptocurrencies, i
 
 Documentation is available at this address: 
 https://fetch-documentation.readthedocs.io/en/latest/index.html
+
+
+
+Scripts : 
+===========================
+
+- fetch.py : Start collecting data 
+
+- scheduled_start.py : Delay data collection 
+
+- correct_tables.py: Interpolate and fill missing data across all tables
+
+
+Data will be located at /crypto_data.sqlite
+
+
+

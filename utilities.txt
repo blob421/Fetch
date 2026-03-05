@@ -1,0 +1,11 @@
+Simply run the scripts and follow the prompts if required.
+
+
+--- correct tables.py ---
+
+Used to interpolate all rows and fill missing data across all tables. 
+
+
+--- scheduled_start.py ---
+
+Delays the collection of data by setting a desired time for startup.

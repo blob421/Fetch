@@ -11,6 +11,7 @@ import contextlib
 
 headers = None
 def load_api_key():
+    global headers
     path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
     with open(path, 'r') as file:
        headers = json.load(file)
@@ -610,6 +611,7 @@ async def main():
 def startup_init():
     seconds_to_wait = 0
     load_api_key()
+
     try:
         with sqlite3.connect('crypto_data.sqlite') as conn:
             with contextlib.closing(conn.cursor()) as cur:

@@ -34,18 +34,20 @@ This program requires Python.
 
 Scheduling on startup
 -------------------------
-- Make a batch file named start.bat where fetch.py lives.
-  
-   1. @echo off 
-      cd path_to/fetch.py/your_virtual_environment/Scripts  ** Not needed if no virtual environment 
-      call activate.bat                                     ** Not needed if no virtual environment 
-      cd path_to/fetch_folder
-      python fetch.py
-      pause
+- Make a batch file named start.bat where fetch.py lives :
 
-   2. Save and add a shortcut to this file to your startup folder(windows)
+  ```bat
+  @echo off 
+  cd path_to/fetch.py/your_virtual_environment/Scripts  ** Not needed if no virtual environment 
+  call activate.bat                                     ** Not needed if no virtual environment 
+  cd path_to/fetch_folder
+  python fetch.py
+  pause
 
-   3. Fetch will wait and resume to stay aligned with current data timestamps.
+
+ 1. Save and add a shortcut to this file to your startup folder(windows)
+
+ 2. Fetch will wait and resume to stay aligned with current data timestamps.
 
 
 Correcting missing data 

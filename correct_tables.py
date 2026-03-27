@@ -3,7 +3,7 @@ import sqlite3
 import os 
 from datetime import datetime, timedelta
 import math
-
+import contextlib
 
 TABLE_SCHEMAS = {
     "bitcoin_data": ["price","volume","marketCap","availableSupply","totalSupply",
@@ -16,7 +16,7 @@ TABLE_SCHEMAS = {
 }
 
 
-def correct_table(table):
+def add_missing_rows(table):
     with sqlite3.connect('crypto_data.sqlite') as conn:
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM {table}')
@@ -58,14 +58,91 @@ def correct_table(table):
                         cursor.execute(f"""
                             INSERT INTO {table} (date,{",".join(columns)})
                             VALUES ({",".join(["?"] * (len(columns) + 1))})
-                        """, [date.strftime("%Y-%m-%d %H:%M:%S.%f")] + interpolated)
+                        """, [date.strftime("%Y-%m-%d %H:%M:%S.%f") + date.strftime("%z")[:3] + ":" + date.strftime("%z")[3:]] + interpolated)
 
             # --- update prev_t and prev_values for next iteration ---
             prev_t = dt
             for idx, col in enumerate(columns, start=1):
                 prev_values[col] = row[idx]
 
+
+
+def interpolate_rows(table):
+    with sqlite3.connect('crypto_data.sqlite') as conn:
+        with contextlib.closing(conn.cursor()) as cur:
+            rows_query = f'SELECT * FROM {table}'
+            cur.execute(rows_query)
+            rows = cur.fetchall()
+
+            first = None
+            last = None
+            rows_in_between = []
+            invalid_row_detected = False
+            sql_query_string = "=? ,".join(TABLE_SCHEMAS[table]) + '=?'
+            print(sql_query_string)
+
+            last_row = None
+            for row in rows:
+                
+                if row[1] is not None: 
+                    if invalid_row_detected:
+                        last = row
+                        print(f'Fist Valid row : {first[0]} ')
+                        print(f'Last valid row : {last[0]} ')
+                       
+                        number_of_null_row = len(rows_in_between)
+            
+                        diffs = {}
+
+                        for idx , col in enumerate(TABLE_SCHEMAS[table], start=1):
+                            try: 
+                               diffs[idx] = round(float(last[idx] - float(first[idx])), 5)
+                            except:
+                                diffs[idx] = first[idx]
+
+                        print(diffs)
+                        
+
+                        for idx, date in enumerate(rows_in_between, start=1):
+                    
+                          new_values = []
+                          for n in range(len(TABLE_SCHEMAS[table])):
+                           
+                              if isinstance(diffs[n + 1], float):
+                                new_val = first[n + 1] + ((diffs[n + 1] / (number_of_null_row + 1)) * idx)
+                                new_values.append(new_val)
+                              else:
+                                  new_val = diffs[n + 1]
+                                  new_values.append(new_val)
+                          print(f'New values: {new_values}')
+
+                          cur.execute(f'''UPDATE {table} SET {sql_query_string} 
+                                          WHERE date=?''', new_values + [date])
+
+                      
+                        invalid_row_detected = False
+                        rows_in_between = []
+
+                    else:
+                     
+                       first = row
+  
+                if table == 'market_data' and not row[8]:
+                    cur.execute(f'''UPDATE {table} SET fear_greed_value=?, fear_greed_name=? 
+                                          WHERE date=?''', [last_row[7]] + [last_row[8]] + [row[0]])
+                if table == 'market_data' and row[8]:
+                    last_row = row
+
+                if row[1] is None:
+                    invalid_row_detected = True
+                    print(f'Detected row {row[0]} as NULL TABLE: {table}')
+                    rows_in_between.append(row[0])
+
 tables = ['bitcoin_data', 'eth_data', 'market_data']
 
+
 for table in tables:
-    correct_table(table)
+    print('Interpolating NULL rows ...')
+    interpolate_rows(table)
+    print('Adding Missing rows ...')
+    add_missing_rows(table)

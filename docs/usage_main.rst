@@ -62,6 +62,9 @@ prevents outdated or biased data from being inserted into the database and inste
 measurements are always accurate. Moreover, time measurements are always proceeded before `fetch_data_with_retry()`,
 ensuring time consistency even if attempts to fetch were made.
 
+Fetch also "remembers" the last time data was taken so whenever you start it up and the database
+exists in the current working directory , it will wait and resume for the next meant iteration.
+
 Database operations
 ------------------------
 

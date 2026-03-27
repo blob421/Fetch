@@ -5,7 +5,7 @@ import asyncio
 import aiohttp
 import time
 import os
-
+import contextlib
 path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
 with open(path, 'r') as file:
    headers = json.load(file)
@@ -603,10 +603,49 @@ async def main():
    )
  
 
+seconds_to_wait = 0
+try:
+    with sqlite3.connect('crypto_data.sqlite') as conn:
+        with contextlib.closing(conn.cursor()) as cur:
+            cur.execute("SELECT * FROM market_data ORDER BY rowid DESC LIMIT 1")
+            row = cur.fetchone()
+            date = row[0]
 
-if __name__ == '__main__':
+            parsed_datetime = datetime.fromisoformat(date)
+     
+            now = datetime.now(timezone.utc) 
+         
+            
+            delta = now - parsed_datetime
+            seconds_difference = delta.total_seconds()
+            minutes_difference = seconds_difference / 60
+
+            if (minutes_difference / 5 < 1):
+                 seconds_to_wait = (5 - minutes_difference) * 60
+             
+            else:
+                 iterations_done_since = minutes_difference // 5
+                 last_supposed_iteration = parsed_datetime + timedelta(minutes = iterations_done_since * 5)
+                 delta_from_next_iteration = now - last_supposed_iteration
+                 seconds_to_wait = delta_from_next_iteration.total_seconds()
+            
+         
+      
+except sqlite3.Error as e:
+      print(e)
+
+finally: 
+    if seconds_to_wait > 0:
+       print(f'Starting in {seconds_to_wait} seconds ...')
+
+    time.sleep(seconds_to_wait)
+    print("Starting ...")
+    if __name__ == '__main__':
  
- asyncio.run(main())
+         asyncio.run(main())
+
+
+
 
 
 

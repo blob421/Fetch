@@ -14,7 +14,7 @@ PGPASSWORD=os.getenv("PGPASSWORD")
 
 
 API_KEY = os.environ.get('API_KEY_COINSTATS')
-print(API_KEY)
+
 
 url_btc = "https://openapiv1.coinstats.app/coins?currency=USD&name=bitcoin&symbol=BTC"
 url_eth = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symbol=ETH"
@@ -617,10 +617,61 @@ async def main():
    )
  
 
+seconds_to_wait = 0
+try:
+     with psycopg2.connect( 
+            dbname = PGDATABASE,
+            host = PGHOST,
+            user = PGUSER,
+            port = PGPORT,
+            password = PGPASSWORD,
+            connect_timeout=10,
+            sslmode="prefer")  as conn:
+        
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT * FROM market_data ORDER BY date DESC LIMIT 1")
+            row = cur.fetchone()
+            date = row[0]
+           
+       
+         
+            parsed_datetime = date.replace(tzinfo=timezone.utc)
+            
 
-if __name__ == '__main__':
+            now = datetime.now(timezone.utc)
+
+            delta = now - parsed_datetime
+            minutes_difference = delta.total_seconds() / 60
+          
+           
+
+            if (minutes_difference / 5 < 1):
+             
+                 seconds_to_wait = (5 - minutes_difference) * 60
+              
+            else:
+                 iterations_done_since = minutes_difference // 5
+                 
+                 last_supposed_iteration = parsed_datetime + timedelta(minutes = iterations_done_since * 5)
+                 delta_from_next_iteration = now - last_supposed_iteration
+                 seconds_to_wait = delta_from_next_iteration.total_seconds()
+            
+         
+      
+except psycopg2.Error as e:
+      print(e)
+
+finally: 
  
- asyncio.run(main())
+    if seconds_to_wait > 0:
+       print(f'Starting in {seconds_to_wait} seconds ...')
+
+    time.sleep(seconds_to_wait)
+    print("Starting ...")
+    if __name__ == '__main__':
+ 
+         asyncio.run(main())
+
 
 
 

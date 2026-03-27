@@ -43,7 +43,7 @@ Scheduling on startup
   cd path_to/fetch_folder
   python fetch.py
   pause
-
+  ```
 
  1. Save and add a shortcut to this file to your startup folder(windows)
 

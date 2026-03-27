@@ -9,6 +9,7 @@ import time
 import os
 import contextlib
 
+headers = None
 def load_api_key():
     path = os.path.join(os.path.dirname(__file__), 'ApiKey.txt')
     with open(path, 'r') as file:

@@ -19,7 +19,7 @@ TABLE_SCHEMAS = {
 def add_missing_rows(table):
     with sqlite3.connect('crypto_data.sqlite') as conn:
         cursor = conn.cursor()
-        cursor.execute(f'SELECT * FROM {table}')
+        cursor.execute(f'SELECT * FROM {table} ORDER BY date')
         rows = cursor.fetchall()
         columns = TABLE_SCHEMAS[table]
 
@@ -70,7 +70,7 @@ def add_missing_rows(table):
 def interpolate_rows(table):
     with sqlite3.connect('crypto_data.sqlite') as conn:
         with contextlib.closing(conn.cursor()) as cur:
-            rows_query = f'SELECT * FROM {table}'
+            rows_query = f'SELECT * FROM {table} ORDER BY date'
             cur.execute(rows_query)
             rows = cur.fetchall()
 

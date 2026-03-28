@@ -10,9 +10,13 @@ Scripts :
 
 - fetch.py : Start collecting data 
 
-- scheduled_start.py : Delay data collection 
-
 - correct_tables.py: Interpolate and fill missing data across all tables
+
+- Analyze and remove duplicates.py : Get a report on timestamps and gaps. Detect and remove duplicates.
+
+
+** It is recommended to run correct_tables.py before removing any duplicates 
+for data integrity **
 
 
 Data will be located at /crypto_data.sqlite

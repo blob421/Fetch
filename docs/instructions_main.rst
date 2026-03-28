@@ -43,11 +43,24 @@ Scheduling on startup
 
 Correcting missing data 
 ---------------------------
+
 - To interpolate missing row , run correct_tables.py
 
  1. This script will interpolate rows that have NULL values.
 
  2. It will also add rows for missed intervals.
+
+
+Analyzing and removing duplicate rows 
+--------------------------------------
+- Run Analyze and remove duplicates.py
+
+  1. When prompted ,  press 'y' and enter to start printing reports .
+
+  2. If you suspect time gaps are missing , run correct_tables.py first (for data integrity)
+     before proceeding in removing duplicates . 
+
+  2. If there are duplicates , press y to remove them from the database or 'n' to exit .
    
 
    

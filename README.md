@@ -3,7 +3,21 @@ Fetch is a script designed to collect market-related data on cryptocurrencies, i
 Documentation is available at this address: 
 https://fetch-documentation.readthedocs.io/en/latest/instructions_main.html
 
-Scripts : 
+
+Starting Fetch 
+===========================
+
+- Fetch must be started from the "/Fetch" directory. The same applies for tools. In your terminal : 
+
+1. cd path/to/Fetch
+
+2. python fetch.py
+
+Data will be located at Fetch/crypto_data.sqlite
+
+
+
+Scripts 
 ===========================
 
 - fetch.py : Start or resume collecting data 
@@ -17,7 +31,7 @@ Scripts :
 for data integrity **
 
 
-Data will be located at /crypto_data.sqlite
+
 
 
 

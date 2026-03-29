@@ -4,19 +4,6 @@ Documentation is available at this address:
 https://fetch-documentation.readthedocs.io/en/latest/instructions_main.html
 
 
-Starting Fetch 
-===========================
-
-- Fetch must be started from the "/Fetch" directory. The same applies for tools. In your terminal : 
-
-  1. cd path/to/Fetch
-
-  2. python fetch.py
-
-  Data will be located at Fetch/crypto_data.sqlite
-
-
-
 Scripts 
 ===========================
 
@@ -31,6 +18,7 @@ Scripts
 for data integrity **
 
 
+Data will be stored in the same folder as fetch.py, in a file named crypto_data.sqlite.
 
 
 

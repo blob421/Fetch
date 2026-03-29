@@ -9,6 +9,8 @@ import time
 import os
 import contextlib
 
+DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
+
 headers = None
 def load_api_key():
     global headers
@@ -189,7 +191,7 @@ async def fetch_marketdata():
           pass
    
     
-       with sqlite3.connect('crypto_data.sqlite') as conn:
+       with sqlite3.connect(DB_PATH) as conn:
            cursor = conn.cursor() 
         
            conn.execute("PRAGMA journal_mode=WAL;")
@@ -306,7 +308,7 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
       pass
    
 
-   with sqlite3.connect('crypto_data.sqlite') as conn:
+   with sqlite3.connect(DB_PATH) as conn:
     
       cursor = conn.cursor()
       conn.execute("PRAGMA journal_mode=WAL;")
@@ -613,7 +615,7 @@ def startup_init():
     load_api_key()
 
     try:
-        with sqlite3.connect('crypto_data.sqlite') as conn:
+        with sqlite3.connect(DB_PATH) as conn:
             with contextlib.closing(conn.cursor()) as cur:
                 cur.execute("SELECT * FROM market_data ORDER BY rowid DESC LIMIT 1")
                 row = cur.fetchone()

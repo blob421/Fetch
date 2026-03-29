@@ -5,6 +5,8 @@ from datetime import datetime, timedelta
 import math
 import contextlib
 
+DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
+
 TABLE_SCHEMAS = {
     "bitcoin_data": ["price","volume","marketCap","availableSupply","totalSupply",
                      "fullyDilutedValuation","priceChange1h","priceChange1d","priceChange1w"],
@@ -17,7 +19,7 @@ TABLE_SCHEMAS = {
 
 
 def add_missing_rows(table):
-    with sqlite3.connect('crypto_data.sqlite') as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM {table} ORDER BY date')
         rows = cursor.fetchall()
@@ -68,7 +70,7 @@ def add_missing_rows(table):
 
 
 def interpolate_rows(table):
-    with sqlite3.connect('crypto_data.sqlite') as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         with contextlib.closing(conn.cursor()) as cur:
             rows_query = f'SELECT * FROM {table} ORDER BY date'
             cur.execute(rows_query)
@@ -79,7 +81,7 @@ def interpolate_rows(table):
             rows_in_between = []
             invalid_row_detected = False
             sql_query_string = "=? ,".join(TABLE_SCHEMAS[table]) + '=?'
-            print(sql_query_string)
+          
 
             last_row = None
             for row in rows:

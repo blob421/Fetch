@@ -3,10 +3,12 @@ import os
 import sqlite3
 import contextlib
 import csv
-### EXPORT the 3 tables to csv and run this script in the same folder ###
-small_intervals = {}
-current_dir = os.getcwd()
 
+### EXPORT the 3 tables to csv and run this script in the same folder ###
+small_intervals = {'market_data.csv': [], 'bitcoin_data.csv': [], 'eth_data.csv': []}
+
+MAIN_DIR = os.path.dirname(__file__)
+DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
 
 
 def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
@@ -68,14 +70,14 @@ def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
 
     return df
 
-def make_csv(db_path):
-    if not os.path.exists(os.path.join(current_dir, 'crypto_data.sqlite')) :
+def make_csv():
+    if not os.path.exists(DB_PATH) :
          print("")
          print('No database detected, please ensure you are in the right directory\n')
          print('Program exiting ...')
          os._exit(1)
 
-    with sqlite3.connect(db_path) as conn:
+    with sqlite3.connect(DB_PATH) as conn:
         with contextlib.closing(conn.cursor()) as cur:
 
             # Get all tables
@@ -87,7 +89,7 @@ def make_csv(db_path):
                 rows = cur.fetchall()
                 columns = [desc[0] for desc in cur.description]
 
-                csv_path = os.path.join(current_dir, f"{table}.csv")
+                csv_path = os.path.join(MAIN_DIR, f"{table}.csv")
 
                 with open(csv_path, "w", newline="", encoding="utf-8") as f:
                     writer = csv.writer(f)
@@ -98,7 +100,7 @@ def make_csv(db_path):
 
 def delete_less_than_1s_intervals(table):
   table_name = table.split('.')[0]
-  with sqlite3.connect('crypto_data.sqlite') as conn:
+  with sqlite3.connect(DB_PATH) as conn:
       with contextlib.closing(conn.cursor()) as cur :
           placeholders = ",".join("?" for _ in small_intervals[table])
 
@@ -121,14 +123,14 @@ def main():
     
         choice = input('Start Analyzis ? (y, n) : ')
         if choice.lower().strip() == 'y':
-            make_csv('crypto_data.sqlite')
+            make_csv()
 
   
            
             for n in csv_names:
-                if os.path.exists(os.path.join(current_dir, n)):
+                if os.path.exists(os.path.join(MAIN_DIR, n)):
                     print(f'\n❗❗❗❗❗ Analyzing {n} ... ❗❗❗❗❗ ')
-                    analyze_intervals(n)
+                    analyze_intervals(os.path.join(MAIN_DIR, n))
        
          
             break
@@ -177,8 +179,8 @@ def main():
      
 def clear_csv():
     for f in csv_names:
-       if os.path.exists(os.path.join(current_dir ,f)):
-          os.remove(f)
+       if os.path.exists(os.path.join(MAIN_DIR ,f)):
+          os.remove(os.path.join(MAIN_DIR ,f))
           print("")
           print(f'Cleared {f} from disk')
 main()

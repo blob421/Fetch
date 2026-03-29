@@ -9,11 +9,11 @@ Starting Fetch
 
 - Fetch must be started from the "/Fetch" directory. The same applies for tools. In your terminal : 
 
-1. cd path/to/Fetch
+  1. cd path/to/Fetch
 
-2. python fetch.py
+  2. python fetch.py
 
-Data will be located at Fetch/crypto_data.sqlite
+  Data will be located at Fetch/crypto_data.sqlite
 
 
 

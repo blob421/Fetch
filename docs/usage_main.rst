@@ -16,7 +16,8 @@ How it works
 Fetch is an asynchronous program running through a main event loop. It uses the `asyncio` 
 module to run tasks concurrently. This means the program continuously executes functions 
 instead of processing them sequentially. Timestamps are also based on UTC to avoid timezone or
-DST discrepancies.
+DST discrepancies. This program is "set up and forget", so you can schedule it at startup and 
+it will resume at the right time when rebooting. 
 
 How it fetches and writes to the database
 -----------------------------------------------

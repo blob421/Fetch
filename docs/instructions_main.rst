@@ -34,9 +34,10 @@ This program requires Python.
 
 Scheduling on startup
 -------------------------
+
  1. Make a batch file where fetch.py lives (It should activate your virtual environment and run fetch.py).
 
- 2. Save and add a shortcut to this file to your startup folder(windows)
+ 2. Save and add a shortcut to this file to your startup folder (windows)
 
  3. Fetch will wait and resume on startup to stay aligned with current data timestamps.
 
@@ -51,16 +52,16 @@ Correcting missing data
  2. It will also add rows for missed intervals.
 
 
-Analyzing and removing duplicate rows 
+Analyzing timestamps and removing duplicate rows 
 --------------------------------------
 - Run Analyze and remove duplicates.py
 
-  1. When prompted ,  press 'y' and enter to start printing reports .
+  1. When prompted , enter 'y' and press enter to start the analysis .
 
-  2. If you suspect time gaps are missing , run correct_tables.py first (for data integrity)
+  2. If you suspect rows are missing , run correct_tables.py first (for data integrity)
      before proceeding in removing duplicates . 
 
-  2. If there are duplicates , press y to remove them from the database or 'n' to exit .
+
    
 
    

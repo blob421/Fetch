@@ -69,6 +69,11 @@ def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
     return df
 
 def make_csv(db_path):
+    if not os.path.exists(os.path.join(current_dir, 'crypto_data.sqlite')) :
+         print("")
+         print('No database detected, please ensure you are in the right directory\n')
+         print('Program exiting ...')
+         os._exit(1)
 
     with sqlite3.connect(db_path) as conn:
         with contextlib.closing(conn.cursor()) as cur:
@@ -107,50 +112,47 @@ def delete_less_than_1s_intervals(table):
 csv_names = ['market_data.csv', 'bitcoin_data.csv', 'eth_data.csv']
 def main():
  try:
+    print("")
+    print('WELCOME TO FETCH INTERVALS ANALYSIS TOOL')
+    print("----------------------------------------\n")
 
-     while True: 
-        print("")
-        print('WELCOME TO FETCH INTERVALS ANALYSIS TOOL \n')
-  
-        print('Start Analyzis ? (Y, N)')
+    while True: 
+ 
     
-        choice = input()
-        if choice.lower() == 'y':
+        choice = input('Start Analyzis ? (y, n) : ')
+        if choice.lower().strip() == 'y':
             make_csv('crypto_data.sqlite')
 
   
            
             for n in csv_names:
                 if os.path.exists(os.path.join(current_dir, n)):
-                    print(f'❗❗❗❗❗ Analyzing {n} ... ❗❗❗❗❗ ')
+                    print(f'\n❗❗❗❗❗ Analyzing {n} ... ❗❗❗❗❗ ')
                     analyze_intervals(n)
-                else:
-                    print("")
-                    print(f'{n} does not exits in this workpath, skipping ...')
+       
          
             break
 
-        elif choice.lower() == 'n':
+        elif choice.lower().strip() == 'n':
             print('Program Exiting ...')
             clear_csv()
             os._exit(0)
 
-        elif choice.lower() != 'y' or choice.lower() != 'n':
-            print('Wrong input')
+        elif choice.lower().strip() != 'y' or choice.lower().strip() != 'n':
+            print('\nWrong input, please enter "y" or "n"\n')
             continue
             
 
 
-     if (len(small_intervals['market_data.csv']) > 0 
+    if (len(small_intervals['market_data.csv']) > 0 
          or len(small_intervals['bitcoin_data.csv']) > 0 
          or len(small_intervals['eth_data.csv']) > 0):
 
         while True:
             print("")
-            print('❗❗ DUPLICATE DETECTED , delete them from database ? (Y, N)❗❗' )
        
-            choice_2 = input()
-            if choice_2.lower() == 'y':
+            choice_2 = input('❗❗ DUPLICATES DETECTED , delete them from the database ? (Y, N)❗❗ : ' )
+            if choice_2.lower().strip() == 'y':
                 for t in csv_names:
                    print(f'Removing {len(small_intervals[t])} rows from {t.split('.')[0]}...')
                    delete_less_than_1s_intervals(t)
@@ -158,21 +160,25 @@ def main():
                 break
 
 
-            elif choice.lower() == 'n':
-                print('Program Exiting ...')
+            elif choice_2.lower().strip() == 'n':
+                print('\nProgram Exiting ...')
                 clear_csv()
                 os._exit(0)
 
-            elif choice.lower() != 'y' or choice.lower() != 'n':
-                print('Wrong input')
+            elif choice_2.lower().strip() != 'y' or choice_2.lower().strip() != 'n':
+                print('\nWrong input, please enter "y" or "n"')
                 continue
 
-     clear_csv()
+      
+    clear_csv()
+
  except KeyboardInterrupt:
-     clear_csv()
+    clear_csv()
      
 def clear_csv():
     for f in csv_names:
        if os.path.exists(os.path.join(current_dir ,f)):
           os.remove(f)
+          print("")
+          print(f'Cleared {f} from disk')
 main()

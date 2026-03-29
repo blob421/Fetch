@@ -1,17 +1,22 @@
 Simply run the scripts and follow the prompts if required.
 
 
---- correct tables.py ---
+correct tables.py
+
+========================================
 
 Used to interpolate all rows and fill missing data across all tables. 
 
 
---- Analyze and remove duplicates.py ---
+Analyze and remove duplicates.py 
 
-Analyze and print a report of time gaps by exporting db tables to csv . 
+========================================
 
-- analyze_intervals() takes a tolerance_seconds parameter.
-- Prompts for the deletion of duplicates (> 5s)
-- Clears csv files from disk
+- Analyze and print a report on time gaps by exporting db tables to csv . 
 
-** Only use if gaps between timestamps are already accurate, else run correct_tables.py first **
+- Prompts for the deletion of duplicates (< 5s between them)
+
+- Clears csv files from disk after use
+
+!! IMPORTANT !!
+** Only delete duplicates if gaps between timestamps are already accurate, else run correct_tables.py first **

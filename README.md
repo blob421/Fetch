@@ -4,13 +4,12 @@ Documentation is available at this address:
 https://fetch-documentation.readthedocs.io/en/latest/index.html
 
 
-
 Scripts : 
 ===========================
 
-- fetch.py : Start collecting data 
+- fetch.py : Start or resume collecting data 
 
-- correct_tables.py: Interpolate and fill missing data across all tables
+- correct_tables.py: Interpolate and fill missing rows across all tables
 
 - Analyze and remove duplicates.py : Get a report on timestamps and gaps. Detect and remove duplicates.
 

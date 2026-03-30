@@ -17,7 +17,8 @@ Scripts
 ** It is recommended to run correct_tables.py before removing any duplicates 
 for data integrity **
 
-
+Data
+=============================
 Data will be stored in the same folder as fetch.py, in a file named crypto_data.sqlite.
 
 

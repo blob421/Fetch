@@ -617,14 +617,14 @@ def startup_init():
     try:
         with sqlite3.connect(DB_PATH) as conn:
             with contextlib.closing(conn.cursor()) as cur:
-                cur.execute("SELECT * FROM market_data ORDER BY rowid DESC LIMIT 1")
+                cur.execute("SELECT * FROM market_data ORDER BY date DESC LIMIT 1")
                 row = cur.fetchone()
                 date = row[0]
-
+             
                 parsed_datetime = datetime.fromisoformat(date)
-        
+             
                 now = datetime.now(timezone.utc) 
-            
+                
                 
                 delta = now - parsed_datetime
                 seconds_difference = delta.total_seconds()
@@ -636,7 +636,8 @@ def startup_init():
                 else:
                     iterations_done_since = minutes_difference // 5
                     last_supposed_iteration = parsed_datetime + timedelta(minutes = iterations_done_since * 5)
-                    delta_from_next_iteration = now - last_supposed_iteration
+                    next_supposed_iteration = last_supposed_iteration + timedelta(minutes=5)
+                    delta_from_next_iteration = next_supposed_iteration - now
                     seconds_to_wait = delta_from_next_iteration.total_seconds()
                 
             

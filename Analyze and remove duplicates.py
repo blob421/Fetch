@@ -44,7 +44,7 @@ def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
     formatted = less_than_1s['date'].dt.strftime("%Y-%m-%d %H:%M:%S.%f%z")
     formatted = formatted.str.replace(r'(\+|\-)(\d{2})(\d{2})$', r'\1\2:\3', regex=True)
 
-    small_intervals[csv_path] = formatted.tolist()
+    small_intervals[csv_path.split('\\')[-1]] = formatted.tolist()
         
 
     print("\n=== Interval Analysis ===")
@@ -145,7 +145,7 @@ def main():
             continue
             
 
-
+  
     if (len(small_intervals['market_data.csv']) > 0 
          or len(small_intervals['bitcoin_data.csv']) > 0 
          or len(small_intervals['eth_data.csv']) > 0):

@@ -27,14 +27,14 @@ def add_missing_rows(table):
 
         prev_t = None
         prev_values = {}
-        for row_index, row in enumerate(rows):
+        for row in rows:
             time = row[0]
             dt = datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
 
             if prev_t is not None:
                 gap = dt - prev_t
-                if gap > timedelta(minutes=6):
-                    missing_rows = math.ceil(gap.total_seconds() / 300)  # 300s = 5min
+                if gap >= timedelta(minutes=5, seconds=20):
+                    missing_rows = math.floor(gap.total_seconds() / 300) - 1  # 300s = 5min
 
                     # --- compute diffs between current and previous row ---
                     diffs = {}
@@ -47,7 +47,7 @@ def add_missing_rows(table):
                             diffs[col] = None
 
                     # --- interpolate missing rows ---
-                    for i in range(1, missing_rows):
+                    for i in range(1, missing_rows + 1):
                         date = prev_t + timedelta(minutes=5 * i)
                         interpolated = []
                         for idx, col in enumerate(columns, start=1):

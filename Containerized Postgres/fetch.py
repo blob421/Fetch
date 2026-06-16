@@ -653,7 +653,8 @@ try:
                  iterations_done_since = minutes_difference // 5
                  
                  last_supposed_iteration = parsed_datetime + timedelta(minutes = iterations_done_since * 5)
-                 delta_from_next_iteration = now - last_supposed_iteration
+                 next_supposed_iter = last_supposed_iteration + timedelta(minutes=5)
+                 delta_from_next_iteration = next_supposed_iter - now
                  seconds_to_wait = delta_from_next_iteration.total_seconds()
             
          

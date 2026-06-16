@@ -3,12 +3,14 @@ import os
 import sqlite3
 import contextlib
 import csv
-
+import sys
+is_windows_os = sys.platform.startswith('win')
+folder_slash = '\\' if is_windows_os else '/'
 ### EXPORT the 3 tables to csv and run this script in the same folder ###
 small_intervals = {'market_data.csv': [], 'bitcoin_data.csv': [], 'eth_data.csv': []}
 
 MAIN_DIR = os.path.dirname(__file__)
-DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
+DB_PATH = os.path.join(os.path.dirname(__file__), 'prediction_model', 'crypto_data_p6.sqlite')
 
 
 def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
@@ -44,7 +46,7 @@ def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
     formatted = less_than_1s['date'].dt.strftime("%Y-%m-%d %H:%M:%S.%f%z")
     formatted = formatted.str.replace(r'(\+|\-)(\d{2})(\d{2})$', r'\1\2:\3', regex=True)
 
-    small_intervals[csv_path.split('\\')[-1]] = formatted.tolist()
+    small_intervals[csv_path.split(folder_slash)[-1]] = formatted.tolist()
         
 
     print("\n=== Interval Analysis ===")
@@ -145,7 +147,7 @@ def main():
             continue
             
 
-  
+    print(small_intervals)
     if (len(small_intervals['market_data.csv']) > 0 
          or len(small_intervals['bitcoin_data.csv']) > 0 
          or len(small_intervals['eth_data.csv']) > 0):

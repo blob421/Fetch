@@ -16,6 +16,15 @@ SCHEMA = ["price","volume","marketCap","availableSupply","totalSupply",
 mean = 'Unset'
 std = 'Unset'
 
+def load_dataset():
+    rows = []
+    for row in row_gen():
+
+        rows.append(row[2:])
+    rows = np.array(rows, dtype=float)
+    prices = rows[:, 0]                  ### (rows_count, )     
+    X = rows[:, :]                       ### (rows_count, 10)
+    return prices, X
 
 def save_weight():
     global weights
@@ -57,7 +66,7 @@ def row_gen():
                 yield row
 
 
-def train(learning_rate=0.01, epochs=100, threshold = 1e-3):
+def train(learning_rate=0.01, epochs=100, threshold = 1e-4, batch_size=512) -> None:
     global weights, mean , std
     console_init()
     print('\nTrained started ...\n')
@@ -67,34 +76,47 @@ def train(learning_rate=0.01, epochs=100, threshold = 1e-3):
         print('Mean and std could not be retrived , aborting ...')
         os._exit(1)
 
+    prices, X = load_dataset()
+
+
+    X = X[:-1]                                           ### Both miss the last row 
+    movement = (prices[1:] >= prices[:-1]).astype(float)
+
     prev_weights = None
+    b = 0.0
+
     for epoch in range(epochs):
-        last_price = None
-        for row in row_gen():
-
-            if not last_price:
-                last_price = row[1]
-                continue
-
-            price = row[1]
-            data = np.array([float(f) for f in row[2:]], dtype=float).reshape(1, -1)
-
-            data_standarized = (data - mean) / std
-
-            result = data_standarized @ weights
-
-            sig = sigmoid(result)
-
-            movement = 0 if last_price > price else 1
+        for i in range(0, len(X), batch_size):
+            xb = X[i:i+batch_size]
+            yb = movement[i:i+batch_size].reshape(-1, 1)           ### (512, 1)
             
 
+            data_standarized = (xb - mean) / std    ### Standarized array
+                                                    ### (512, 10) 10 col per row
+              
+            result = data_standarized @ weights + b ### (512, 1) 1 result per row
+         
+
+            sig = sigmoid(result)                  ### (512, 1) 1 proba per row
+         
+            
+          
+
+           
             # Gradient
-            gradient = ((sig - movement) * data_standarized).T
+            err = sig - yb          # (512, 1) * (512, 10) = (512, 10) applies to all cols
+            gradient_b = err.mean()
+            gradient = (err * data_standarized).mean(axis=0).reshape(-1,1)
 
-            # Update
-            weights -= learning_rate * gradient
+          
 
-            last_price = price 
+                    
+
+            # Update                              ### Weights (10, 1)
+            b -= learning_rate * gradient_b                  ### Grad    (512, 10)
+            weights -= learning_rate * gradient   ### Gradient is unique for each features
+                                                  ### Depending on how they derived 
+
 
         print(f'Epoch {epoch} done ...')
     
@@ -160,4 +182,6 @@ def compute_norm_params():
 
 
 train()
+
+
 

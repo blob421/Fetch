@@ -1,0 +1,16 @@
+##############################
+DB LIST YOU'VE TRAINED ON :
+
+-
+-
+-
+
+
+###############################
+
+Flow :
+
+1. Run correct_table.py in /Fetch
+2. Run Detect and remove duplicates 
+
+3. Move the db file into /prediction_model

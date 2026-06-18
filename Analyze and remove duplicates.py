@@ -10,7 +10,7 @@ folder_slash = '\\' if is_windows_os else '/'
 small_intervals = {'market_data.csv': [], 'bitcoin_data.csv': [], 'eth_data.csv': []}
 
 MAIN_DIR = os.path.dirname(__file__)
-DB_PATH = os.path.join(os.path.dirname(__file__), 'prediction_model', 'crypto_data_p6.sqlite')
+DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
 
 
 def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):

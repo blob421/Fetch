@@ -36,10 +36,13 @@ def save_weight():
     np.save(final_path, weights)
       
 
-def load_weights():
+def load_weights(n=None):
     global weights, mean, std
-    with open(BASE_WEIGHT, 'r') as f:
-        weights =  np.array(json.load(f).get('weights', []))
+    if not n:
+        with open(BASE_WEIGHT, 'r') as f:
+            weights =  np.array(json.load(f).get('weights', []))
+    else:
+        weights = np.load(os.path.join(WEIGHT_SAVE_PATH, f'weight_{n}.npy'))
 
     mean = np.load(os.path.join(CURRENT_DIR, 'mean.npy'))
     std = np.load(os.path.join(CURRENT_DIR, 'std.npy'))
@@ -68,9 +71,9 @@ def row_gen():
 
 def train(learning_rate=0.01, epochs=100, threshold = 1e-4, batch_size=512) -> None:
     global weights, mean , std
-    console_init()
+    n = console_init()
     print('\nTrained started ...\n')
-    load_weights()
+    load_weights(n)
 
     if not isinstance(mean, np.ndarray) or not isinstance(std, np.ndarray):
         print('Mean and std could not be retrived , aborting ...')
@@ -137,6 +140,24 @@ def console_init():
         print('Computed mean and standard deviation for the dataset\n')
         return
     
+
+    
+    while True:
+        
+        weight_number = input('\nEnter a weight id to proceed or (n) to train from scratch : ')
+        try:
+            number = int(weight_number.strip())
+            return number
+         
+        
+        except Exception:
+            if weight_number in ('n', 'no'):
+               break      
+            else:
+                print('\nPlease provide a weight number or enter (n) to train from scratch')
+                continue
+          
+
     
     while True:
         recalc = input("Recalculate norm params ? (y , n) : ")
@@ -150,6 +171,9 @@ def console_init():
         else:
             print('Wrong choice, please enter (y or n)\n')
             continue
+        
+    return None
+
 
     
 def sigmoid(z):
@@ -181,7 +205,6 @@ def compute_norm_params():
     np.save(os.path.join(CURRENT_DIR, 'std.npy'), std)
 
 
-train()
-
-
+if __name__ == '__main__':
+    train()
 

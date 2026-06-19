@@ -8,8 +8,13 @@ import aiohttp
 import time
 import os
 import contextlib
+import logging
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename=os.path.join(os.path.dirname(__file__), 'logs', 'fetch_logs.log'), 
+                    level=logging.INFO)
 
 headers = None
 def load_api_key():
@@ -32,7 +37,7 @@ url_eth = "https://openapiv1.coinstats.app/coins?currency=USD&name=ethereum&symb
 
 
 
-async def fetch_data_with_retry(url: str, headers: dict, max_retries: int = 5, wait_time: int = 10) -> dict:
+async def fetch_data_with_retry(url: str, headers: dict, max_retries: int = 5, wait_time: int = 1) -> dict:
     """
     Asynchronously fetch data from a given API endpoint with a retry mechanism.
 
@@ -66,10 +71,10 @@ async def fetch_data_with_retry(url: str, headers: dict, max_retries: int = 5, w
              return await response.json()
     
      except aiohttp.ClientError as e:
-        print(f'Attempt{attempt + 1} failed: {e}')
+        logger.info(f'Attempt{attempt + 1} failed: {e}')
         await asyncio.sleep(wait_time)
    
-    print("Max retries reached. Failed to fetch data.")
+    logger.warning("Max retries reached. Failed to fetch data.")
     return None 
 
 

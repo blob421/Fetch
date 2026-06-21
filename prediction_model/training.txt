@@ -13,4 +13,6 @@ Flow :
 1. Run correct_table.py in /Fetch
 2. Run Detect and remove duplicates 
 
-3. Move the db file into /prediction_model
+3. Move the db file into /datasets as crypto_data_p0.sqlite , or p1 
+                
+4. For inference , db.sqlite must be in /Fetch/ (The actual db getting updated)

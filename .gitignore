@@ -1,3 +1,4 @@
 __pycache__/fetch.cpython-312.pyc
-
+.fetch
 *.pyc
+__pycache__

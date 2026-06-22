@@ -91,7 +91,7 @@ def load__mixed_dataset():
     prices = rows[:, 0]                  ### (rows_count, )   
 
     diff = np.abs(prices[1:] - prices[:-1]) 
-    threshold = np.percentile(diff, 10) 
+    threshold = np.percentile(diff, 5) 
     mask = diff >= threshold
 
     X_filtered = rows[:-1][mask]                     ### (rows_count, 10)
@@ -188,3 +188,38 @@ def compute_norm_params(index, regr=False):
     std_path = os.path.join(WEIGHT_SAVE_PATH, f'std_{index}.npy') if not regr else os.path.join(WEIGHT_SAVE_PATH, f'std_regr.npy')
     np.save(mean_path, mean)
     np.save(std_path, std)
+
+
+
+
+def get_action_score():
+  with sqlite3.connect(DB_PATH) as conn:
+        with closing(conn.cursor()) as cur:
+                cur.execute("""SELECT * FROM bitcoin_momentum ORDER BY date DESC LIMIT 1""") 
+                row = cur.fetchone()
+                return row[1]        
+
+def calculate_mean_action():
+  with sqlite3.connect(DB_PATH) as conn:
+        with closing(conn.cursor()) as cur:
+                cur.execute("""SELECT * FROM bitcoin_momentum""") 
+                rows = cur.fetchall()
+                array = np.array([r[1] for r in rows])
+                mean = np.mean(array)
+                std = np.std(array)
+                return mean, std     
+
+def amplify_sig(sig, mean, std):
+  
+    
+    score = get_action_score()
+    std_units = abs(score - mean) / std
+    multiplier = 0.005
+    boost = multiplier * std_units
+   
+    if score < mean :
+        final_boost = 0
+    else:
+        final_boost = min(0.04, boost)
+    
+    return sig - final_boost if sig < 0.5 else sig + final_boost

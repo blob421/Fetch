@@ -24,7 +24,6 @@ class MexcMain():
         self.DBPATH = os.path.join(ROOTDIR, 'crypto_data.sqlite')
         self.row = None
         self.weigths = None
-        self.weights_id = '10'
         self.order_id = None
         self.last_price = None
         self.mean = None

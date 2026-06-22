@@ -1,12 +1,15 @@
 from train_neural import TinyNet
 import numpy as np
 import os 
-from utils.utils import load_last_row
-import time 
+from utils.utils import load_last_row, calculate_mean_action, amplify_sig
+import time
 import torch 
+
 
 CURRENT_DIR = os.path.dirname(__file__)
 WEIGHTS_DIR = os.path.join(CURRENT_DIR, 'weights')
+
+
 
 
 def predict(index:str, filename:str) -> None:
@@ -21,7 +24,11 @@ def predict(index:str, filename:str) -> None:
     last_pred = None
     last_price = None 
     iter = 0
+    action_mean = 0
+    action_std = 0
+   
 
+  
     while True:
         start_mono = time.monotonic()
 
@@ -37,6 +44,10 @@ def predict(index:str, filename:str) -> None:
             pred = model(row)
 
         result = pred.item()
+        if action_mean > 0 and action_std > 0:
+            sig = amplify_sig(float(result), action_mean, action_std)
+        else:
+            sig = float(result)
 
         if last_pred and last_pred > 0.56:
            if last_price < row_raw[2]:
@@ -77,9 +88,14 @@ def predict(index:str, filename:str) -> None:
    
 
         iter += 1
-        print("Probability of BTC going up:", float(pred.item()) * 100, "%")
+  
+
+        print(f"Probability of BTC going up:  {sig * 100}%")
+
+        action_mean, action_std = calculate_mean_action()
 
         delta_mono = max(0, time.monotonic() - start_mono)
+        
         time.sleep(300 - delta_mono)
 
 

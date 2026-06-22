@@ -13,8 +13,6 @@ MODEL_ROOT_DIR = os.path.abspath(os.path.join(CURRENT_DIR, '../'))
 
 WEIGHT_SAVE_PATH = os.path.join(MODEL_ROOT_DIR, 'weights')
 
-DB_PATH = os.path.join(MODEL_ROOT_DIR, 'crypto_data.sqlite')
-
 
 FETCH_DIR = os.path.abspath(os.path.join(MODEL_ROOT_DIR, '../'))
 
@@ -79,7 +77,7 @@ def load_last_row():
             return result 
 
 
-def load__mixed_dataset():
+def load__mixed_dataset(percentile:int):
     rows = []
     for d_id in range(1, 7):
         
@@ -91,7 +89,7 @@ def load__mixed_dataset():
     prices = rows[:, 0]                  ### (rows_count, )   
 
     diff = np.abs(prices[1:] - prices[:-1]) 
-    threshold = np.percentile(diff, 5) 
+    threshold = np.percentile(diff, percentile) 
     mask = diff >= threshold
 
     X_filtered = rows[:-1][mask]                     ### (rows_count, 10)
@@ -110,9 +108,9 @@ def load_dataset(n):
     return prices, X
 
 
-def row_gen(DB=None):
-    db_str = DB_PATH if not DB else DB
-    with sqlite3.connect(db_str) as conn :
+def row_gen(DB):
+   
+    with sqlite3.connect(DB) as conn :
         with closing(conn.cursor()) as cur :
             cur.execute("""
                 SELECT b.*, m.fear_greed_value
@@ -193,14 +191,14 @@ def compute_norm_params(index, regr=False):
 
 
 def get_action_score():
-  with sqlite3.connect(DB_PATH) as conn:
+  with sqlite3.connect(CURRENT_DB_PATH) as conn:
         with closing(conn.cursor()) as cur:
                 cur.execute("""SELECT * FROM bitcoin_momentum ORDER BY date DESC LIMIT 1""") 
                 row = cur.fetchone()
                 return row[1]        
 
 def calculate_mean_action():
-  with sqlite3.connect(DB_PATH) as conn:
+  with sqlite3.connect(CURRENT_DB_PATH) as conn:
         with closing(conn.cursor()) as cur:
                 cur.execute("""SELECT * FROM bitcoin_momentum""") 
                 rows = cur.fetchall()

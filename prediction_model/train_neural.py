@@ -5,11 +5,11 @@ from torch.utils.data import DataLoader, TensorDataset
 import numpy as np
 import os 
 print(os.getcwd())
-from utils.utils import (compute_norm_params_mixed, load__mixed_dataset, load_dataset, load_last_row, 
+from utils.utils import (compute_norm_params_mixed, load__mixed_dataset,
                    compute_norm_params)
 
 CURRENT_DIR = os.path.dirname(__file__)
-
+PERCENTILE  = 15
 WEIGHTS_DIR = os.path.join(CURRENT_DIR, 'weights')
 
 class TinyNet(nn.Module):
@@ -33,6 +33,7 @@ class TinyNet(nn.Module):
     
 
 def train_neural(mean_path , std_path, indexes):
+    global PERCENTILE
     mean = np.load(os.path.join(WEIGHTS_DIR, mean_path))  ### shape (1, 10)
     std = np.load(os.path.join(WEIGHTS_DIR, std_path))    ### shape (1, 10)
 
@@ -48,7 +49,7 @@ def train_neural(mean_path , std_path, indexes):
     criterion = nn.BCELoss()              # binary classification loss
     
 
-    prices , X = load__mixed_dataset()
+    prices , X = load__mixed_dataset(PERCENTILE)
   
     X = X[:-1]                                           ### Both miss the last row 
     Y = (prices[1:] >= prices[:-1]).astype(float)
@@ -97,12 +98,13 @@ def train_neural(mean_path , std_path, indexes):
         print(f"Epoch {epoch+1}, Train Loss: {loss.item():.4f}, Val Loss: {val_loss:.4f}")
     
     idx_str = '_'.join([i for i in indexes])
-    torch.save(model.state_dict(), os.path.join(WEIGHTS_DIR, f"w_{idx_str}.pt"))
-    print(f'\n Done ... weights saved in /weights/{f"w_{idx_str}.pt"}')
+    torch.save(model.state_dict(), os.path.join(WEIGHTS_DIR, f"w_{idx_str}_P_{str(PERCENTILE)}.pt"))
+    print(f'\n Done ... weights saved in /weights/{f"w_{idx_str}_{str(PERCENTILE)}.pt"}')
 
 
     
 def prompt():
+    global PERCENTILE
     print('\nWelcome to Fetch neural training script ...\n')
     while True:
         choice = input('Enter (m) for mixed datasets or (s) for a specific dataset  : ')
@@ -114,13 +116,27 @@ def prompt():
                     input_list = input('For crypto_data_p6 and p_1 , enter (6,1) : ')
                     try:
                         indexes = [i.strip() for i in input_list.split(',')]
-                        return indexes, 'mixed'
+                        break
+                       
 
                     except:
                         print('\nThere was a problem parsing this string, try again ...')
                         continue
 
-               
+                print('Enter a number that defines percentiles\n')
+                while True:
+                    
+                    perc = input('Ignore how many percent of small trades e.g. (5) : ')
+                    try:
+                        PERCENTILE = int(perc.strip())
+                        break
+                    except:
+                        print('Number is invalid , try again')
+                        continue
+                       
+
+
+                return  indexes, 'mixed'
 
         elif choice.lower().strip() == 's':
 
@@ -130,12 +146,26 @@ def prompt():
                     input_list = input('For crypto_data_p6, enter 6  : ')
                     
                     try:
-                        return int(input_list.strip()), 'single'
+                        index = int(input_list.strip())
+                        break
                     
 
                     except:
                         print('\nThere was a problem parsing this string, try again ...')
                         continue
+
+                 print('Enter a number that defines percentiles\n')
+                 while True:
+                    
+                    perc = input('Ignore how many percent of small trades e.g. (5) : ')
+                    try:
+                        PERCENTILE = int(perc.strip())
+                        break
+                    except:
+                        print('Number is invalid , try again')
+                        continue
+
+                 return index, 'single'
 
         else:
             print('This choice is invalid')

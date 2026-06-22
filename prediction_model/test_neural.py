@@ -12,7 +12,7 @@ WEIGHTS_DIR = os.path.join(CURRENT_DIR, 'weights')
 
 
 
-def predict(index:str, filename:str) -> None:
+def predict(index:str, filename:str, use_momentum=False) -> None:
     # 1. Recreate the model architecture
     model = TinyNet()
     mean = np.load(os.path.join(WEIGHTS_DIR, f'mean_{index}.npy'))  ### shape (1, 10)
@@ -44,8 +44,9 @@ def predict(index:str, filename:str) -> None:
             pred = model(row)
 
         result = pred.item()
-        if action_mean > 0 and action_std > 0:
+        if use_momentum and action_mean > 0 and action_std > 0:
             sig = amplify_sig(float(result), action_mean, action_std)
+            
         else:
             sig = float(result)
 
@@ -128,10 +129,27 @@ def main()-> None:
             except:
                 print('The index entered is out of range, try again ...')
                 continue
+            
+        while True:
+            use_momentum = False
+   
+            choice = input('Use momentum ? (y or n) : ')
+            if choice.strip().lower() in ('y', 'yes'):
+                use_momentum = True
+                break
+            elif choice.strip().lower() in ('n', 'no'):
+                use_momentum = False
+                break
 
-        index = file.split('.')[0].split('w_')[1]
+            else:
+                print('Invalid choice , Please enter "y" or "n" ..')
+                continue
+
+                    
+
+        index = file.split('_P')[0].split('w_')[1]
         print('\nStarting the inference process ....\n')
-        predict(index, file)
+        predict(index, file, use_momentum)
 
 if __name__ == '__main__': 
     main()

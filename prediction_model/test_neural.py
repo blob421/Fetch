@@ -21,6 +21,10 @@ def predict(index:str, filename:str, use_momentum=False) -> None:
     model.load_state_dict(torch.load(os.path.join(WEIGHTS_DIR, filename)))
     model.eval()
     preds = {'good': 0 ,'bad' : 0, 'bad_diff': 0, 'good_diff': 0}
+
+    percentile = int(filename.split('.')[0].split('P_')[1])
+
+    needs_big_multipler = True if percentile > 30 else False
     last_pred = None
     last_price = None 
     iter = 0
@@ -45,7 +49,7 @@ def predict(index:str, filename:str, use_momentum=False) -> None:
 
         result = pred.item()
         if use_momentum and action_mean > 0 and action_std > 0:
-            sig = amplify_sig(float(result), action_mean, action_std)
+            sig = amplify_sig(float(result), action_mean, action_std, needs_big_multipler)
             
         else:
             sig = float(result)
@@ -149,6 +153,7 @@ def main()-> None:
 
         index = file.split('_P')[0].split('w_')[1]
         print('\nStarting the inference process ....\n')
+     
         predict(index, file, use_momentum)
 
 if __name__ == '__main__': 

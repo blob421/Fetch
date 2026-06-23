@@ -207,12 +207,12 @@ def calculate_mean_action():
                 std = np.std(array)
                 return mean, std     
 
-def amplify_sig(sig, mean, std):
+def amplify_sig(sig, mean, std, big_perc=False):
   
     
     score = get_action_score()
     std_units = abs(score - mean) / std
-    multiplier = 0.005
+    multiplier = 0.005 if not big_perc else 0.01
     boost = multiplier * std_units
    
     if score < mean :

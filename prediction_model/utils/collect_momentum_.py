@@ -35,22 +35,20 @@ class Momentum():
 
     def collect_data(self):
         data = []
-        correction = 0
-        
-        for _ in range(148):
-            loop_start = time.monotonic()
-        
-            
+
+        next_tick = time.monotonic()
+        start_time = time.monotonic()
+        while time.monotonic() <= start_time + 296:
+            next_tick += 2
+    
             res = requests.get('https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT')
             price = res.json().get('price', None)
             if not price:
                 print('None detected')
             data.append(price)
-            exec_time = time.monotonic() - loop_start
-            if exec_time > 2:
-                correction +=  exec_time - 2
-            time.sleep(2 - (time.monotonic() - loop_start) - correction)
-            correction = 0
+            time_until_next_tick = next_tick - time.monotonic()
+            time.sleep(max(0, time_until_next_tick))
+      
     
         cleaned = np.array([float(p) for p in data if p])
         deltas = np.abs(cleaned[1:] - cleaned[:-1])
@@ -59,7 +57,7 @@ class Momentum():
 
         cumul_delta = np.sum(filtered)
         print(cumul_delta)       
-        return round(cumul_delta, 5)
+        return round(cumul_delta, 3)
 
     def save_timeframe(self, deltas):
         with sqlite3.connect(DBPATH) as conn:
@@ -80,7 +78,7 @@ class Momentum():
             time_start = time.monotonic()  
             cumul_delta= self.collect_data() ## takes 296s  
                        
-            self.save_timeframe(cumul_delta)    ### First measurement is 4 seconds in advance.
+            self.save_timeframe(cumul_delta)   
             delta = time.monotonic() - time_start
             time.sleep(300 - delta)
 

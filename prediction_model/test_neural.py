@@ -70,7 +70,7 @@ def predict(index:str, filename:str, use_momentum=False) -> None:
                 preds['bad_diff'] += abs(row_raw[2] - last_price)
                 preds['bad'] += 1
             
-        last_pred = result
+        last_pred = sig
         last_price = row_raw[2]
                        
         if iter > 0 and iter % 10 == 0:

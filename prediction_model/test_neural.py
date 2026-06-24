@@ -153,7 +153,7 @@ def main()-> None:
 
         index = file.split('_P')[0].split('w_')[1]
         print('\nStarting the inference process ....\n')
-     
+        
         predict(index, file, use_momentum)
 
 if __name__ == '__main__': 

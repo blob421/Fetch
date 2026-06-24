@@ -38,26 +38,32 @@ class Momentum():
 
         next_tick = time.monotonic()
         start_time = time.monotonic()
-        while time.monotonic() <= start_time + 296:
-            next_tick += 2
-    
-            res = requests.get('https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT')
-            price = res.json().get('price', None)
-            if not price:
-                print('None detected')
-            data.append(price)
-            time_until_next_tick = next_tick - time.monotonic()
-            time.sleep(max(0, time_until_next_tick))
-      
-    
-        cleaned = np.array([float(p) for p in data if p])
-        deltas = np.abs(cleaned[1:] - cleaned[:-1])
-        spike_thr = np.percentile(deltas, 90) ### 90% biggest moves
-        filtered = deltas[deltas < spike_thr] ### Must be smaller than those moves
+        try:
+            while time.monotonic() <= start_time + 296:
+                next_tick += 2
+                
+                res = requests.get('https://api.mexc.com/api/v3/ticker/price?symbol=BTCUSDT')
+                price = res.json().get('price', None)
+                if not price:
+                    print('None detected')
+                data.append(price)
+                time_until_next_tick = next_tick - time.monotonic()
+                time.sleep(max(0, time_until_next_tick))
+        
+        
+            cleaned = np.array([float(p) for p in data if p])
+            deltas = np.abs(cleaned[1:] - cleaned[:-1])
+            spike_thr = np.percentile(deltas, 90) ### 90% biggest moves
+            filtered = deltas[deltas < spike_thr] ### Must be smaller than those moves
 
-        cumul_delta = np.sum(filtered)
-        print(cumul_delta)       
-        return round(cumul_delta, 3)
+            cumul_delta = np.sum(filtered)
+            print(cumul_delta)       
+            return round(cumul_delta, 3)
+        
+        except requests.exceptions.SSLError:
+            print('An error was encountered with the api')
+            return None
+
 
     def save_timeframe(self, deltas):
         with sqlite3.connect(DBPATH) as conn:
@@ -77,8 +83,8 @@ class Momentum():
         while True:
             time_start = time.monotonic()  
             cumul_delta= self.collect_data() ## takes 296s  
-                       
-            self.save_timeframe(cumul_delta)   
+            if cumul_delta:           
+                self.save_timeframe(cumul_delta)   
             delta = time.monotonic() - time_start
             time.sleep(300 - delta)
 

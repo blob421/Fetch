@@ -200,7 +200,7 @@ def get_action_score():
 def calculate_mean_action():
   with sqlite3.connect(CURRENT_DB_PATH) as conn:
         with closing(conn.cursor()) as cur:
-                cur.execute("""SELECT * FROM bitcoin_momentum""") 
+                cur.execute("""SELECT * FROM bitcoin_momentum ORDER BY date DESC LIMIT 500""") 
                 rows = cur.fetchall()
                 array = np.array([r[1] for r in rows])
                 mean = np.mean(array)
@@ -211,13 +211,21 @@ def amplify_sig(sig, mean, std, big_perc=False):
   
     
     score = get_action_score()
-    std_units = abs(score - mean) / std
+    std_units = (score - mean) / std
     multiplier = 0.005 if not big_perc else 0.01
-    boost = multiplier * std_units
-   
-    if score < mean :
-        final_boost = 0
-    else:
-        final_boost = min(0.04, boost)
+    
+    boost = min(0.04, abs(multiplier * std_units))
+
+    if std_units > 4:                      ### Attenuate if there is chaos 
+        final_boost = -boost
+ 
+    elif std_units > 1:                      ### Chaos calmed down 
+        final_boost = boost
+
+    else :
+        final_boost =  (boost * -2.5)        ### Fee trap , attenuate 
+
+
+     
     
     return sig - final_boost if sig < 0.5 else sig + final_boost

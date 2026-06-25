@@ -10,8 +10,7 @@ folder_slash = '\\' if is_windows_os else '/'
 small_intervals = {'market_data.csv': [], 'bitcoin_data.csv': [], 'eth_data.csv': []}
 
 MAIN_DIR = os.path.dirname(__file__)
-DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
-
+DATASETS_DIR = os.path.join(os.path.dirname(__file__), 'datasets')
 
 def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
     global small_intervals
@@ -72,7 +71,7 @@ def analyze_intervals(csv_path, expected_minutes=5, tolerance_seconds=30):
 
     return df
 
-def make_csv():
+def make_csv(DB_PATH):
     if not os.path.exists(DB_PATH) :
          print("")
          print('No database detected, please ensure you are in the right directory\n')
@@ -84,7 +83,7 @@ def make_csv():
 
             # Get all tables
             cur.execute("SELECT name FROM sqlite_master WHERE type='table';")
-            tables = [row[0] for row in cur.fetchall()]
+            tables = [row[0] for row in cur.fetchall() if row[0] != 'bitcoin_momentum']
 
             for table in tables:
                 cur.execute(f"SELECT * FROM {table}")
@@ -100,7 +99,7 @@ def make_csv():
 
                 print(f"Exported {table} → {csv_path}")
 
-def delete_less_than_1s_intervals(table):
+def delete_less_than_1s_intervals(table, DB_PATH):
   table_name = table.split('.')[0]
   with sqlite3.connect(DB_PATH) as conn:
       with contextlib.closing(conn.cursor()) as cur :
@@ -120,12 +119,35 @@ def main():
     print('WELCOME TO FETCH INTERVALS ANALYSIS TOOL')
     print("----------------------------------------\n")
 
+    valid = sorted([f for f in os.listdir(DATASETS_DIR) if f.endswith('.sqlite')])
+
+    if len(valid) == 0:
+        print('No valid db in the datasets dir ... aborting ...')
+        os._exit(1)
+
+    print('\nChoose a database index to proceed : \n')
+    for i, v in enumerate(valid):
+        print(f'{i}    {v}')
+
+    print('\n')
+    while True:
+        choice = input('Choice : ')
+        try:
+            index = int(choice.strip().lower())
+            file_name = valid[index]
+            break
+        except:
+            print('Index out of range , try again ...\n')
+            continue
+
+    DB_PATH = os.path.join(DATASETS_DIR, file_name)
+    
     while True: 
  
     
         choice = input('Start Analyzis ? (y, n) : ')
         if choice.lower().strip() == 'y':
-            make_csv()
+            make_csv(DB_PATH)
 
   
            
@@ -159,7 +181,7 @@ def main():
             if choice_2.lower().strip() == 'y':
                 for t in csv_names:
                    print(f'Removing {len(small_intervals[t])} rows from {t.split('.')[0]}...')
-                   delete_less_than_1s_intervals(t)
+                   delete_less_than_1s_intervals(t, DB_PATH)
                    
                 break
 

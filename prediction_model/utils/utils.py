@@ -212,7 +212,7 @@ def amplify_sig(sig, mean, std, big_perc=False):
     
     score = get_action_score()
     std_units = (score - mean) / std
-    multiplier = 0.005 if not big_perc else 0.01
+    multiplier = 0.0075 if not big_perc else 0.01
     
     boost = min(0.04, abs(multiplier * std_units))
 
@@ -223,7 +223,7 @@ def amplify_sig(sig, mean, std, big_perc=False):
         final_boost = boost
 
     else :
-        final_boost =  (boost * -2.5)        ### Fee trap , attenuate 
+        final_boost =  (boost * -3.0)        ### Fee trap , attenuate 
 
 
      

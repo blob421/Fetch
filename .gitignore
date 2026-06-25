@@ -2,3 +2,13 @@ __pycache__/fetch.cpython-312.pyc
 .fetch
 *.pyc
 __pycache__
+.env
+*.pt
+*.npy
+*.sqbpro
+.old
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.log
+training.txt

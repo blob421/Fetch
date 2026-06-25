@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import math
 import contextlib
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
+DATASETS_DIR = os.path.join(os.path.dirname(__file__), 'datasets')
 
 TABLE_SCHEMAS = {
     "bitcoin_data": ["price","volume","marketCap","availableSupply","totalSupply",
@@ -18,7 +18,7 @@ TABLE_SCHEMAS = {
 }
 
 
-def add_missing_rows(table):
+def add_missing_rows(table, DB_PATH):
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute(f'SELECT * FROM {table} ORDER BY date')
@@ -27,14 +27,14 @@ def add_missing_rows(table):
 
         prev_t = None
         prev_values = {}
-        for row in rows:
+        for row_index, row in enumerate(rows):
             time = row[0]
-            dt = datetime.strptime(str(time), "%Y-%m-%d %H:%M:%S.%f%z")
+            dt = datetime.fromisoformat(time)
 
             if prev_t is not None:
                 gap = dt - prev_t
-                if gap >= timedelta(minutes=5, seconds=20):
-                    missing_rows = math.floor(gap.total_seconds() / 300) - 1  # 300s = 5min
+                if gap > timedelta(minutes=6):
+                    missing_rows = math.ceil(gap.total_seconds() / 300)  # 300s = 5min
 
                     # --- compute diffs between current and previous row ---
                     diffs = {}
@@ -47,7 +47,7 @@ def add_missing_rows(table):
                             diffs[col] = None
 
                     # --- interpolate missing rows ---
-                    for i in range(1, missing_rows + 1):
+                    for i in range(1, missing_rows):
                         date = prev_t + timedelta(minutes=5 * i)
                         interpolated = []
                         for idx, col in enumerate(columns, start=1):
@@ -60,7 +60,7 @@ def add_missing_rows(table):
                         cursor.execute(f"""
                             INSERT INTO {table} (date,{",".join(columns)})
                             VALUES ({",".join(["?"] * (len(columns) + 1))})
-                        """, [date.strftime("%Y-%m-%d %H:%M:%S.%f") + date.strftime("%z")[:3] + ":" + date.strftime("%z")[3:]] + interpolated)
+                        """, [date.isoformat()] + interpolated)
 
             # --- update prev_t and prev_values for next iteration ---
             prev_t = dt
@@ -69,7 +69,7 @@ def add_missing_rows(table):
 
 
 
-def interpolate_rows(table):
+def interpolate_rows(table, DB_PATH):
     with sqlite3.connect(DB_PATH) as conn:
         with contextlib.closing(conn.cursor()) as cur:
             rows_query = f'SELECT * FROM {table} ORDER BY date'
@@ -143,8 +143,33 @@ def interpolate_rows(table):
 tables = ['bitcoin_data', 'eth_data', 'market_data']
 
 
-for table in tables:
-    print('Interpolating NULL rows ...')
-    interpolate_rows(table)
-    print('Adding Missing rows ...')
-    add_missing_rows(table)
+def start():
+    valid = sorted([f for f in os.listdir(DATASETS_DIR) if f.endswith('.sqlite')])
+    if len(valid) == 0:
+        print('No valid db in the datasets dir ... aborting ...')
+        os._exit(1)
+    print('\nChoose a database index to proceed : \n')
+    for i, v in enumerate(valid):
+        print(f'{i}    {v}')
+
+    print('\n')
+    while True:
+        choice = input('Choice : ')
+        try:
+            index = int(choice.strip().lower())
+            file_name = valid[index]
+            break
+        except:
+            print('Index out of range , try again ...\n')
+            continue
+
+    DB_PATH = os.path.join(DATASETS_DIR, file_name)
+
+    for table in tables:
+        print('Interpolating NULL rows ...')
+        print(DB_PATH)
+        interpolate_rows(table, DB_PATH)
+        print('Adding Missing rows ...')
+        add_missing_rows(table, DB_PATH)
+
+start()

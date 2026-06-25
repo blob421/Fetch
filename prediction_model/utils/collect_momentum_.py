@@ -60,7 +60,7 @@ class Momentum():
             print(cumul_delta)       
             return round(cumul_delta, 3)
         
-        except requests.exceptions.SSLError:
+        except :
             print('An error was encountered with the api')
             return None
 

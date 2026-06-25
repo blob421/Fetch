@@ -99,7 +99,7 @@ def train_neural(mean_path , std_path, indexes):
     
     idx_str = '_'.join([i for i in indexes])
     torch.save(model.state_dict(), os.path.join(WEIGHTS_DIR, f"w_{idx_str}_P_{str(PERCENTILE)}.pt"))
-    print(f'\n Done ... weights saved in /weights/{f"w_{idx_str}_{str(PERCENTILE)}.pt"}')
+    print(f'\n Done ... weights saved in /weights/{f"w_{idx_str}_P_{str(PERCENTILE)}.pt"}')
 
 
     
@@ -175,28 +175,39 @@ def main():
     indexes, action = prompt()
     idx_str = '_'.join([i for i in indexes]) if not isinstance(indexes, int) else str(indexes)
     
-    if action == 'mixed':
-        
-        if (not os.path.exists(os.path.join(WEIGHTS_DIR, f'mean_{idx_str}.npy'))
-                or not os.path.exists(os.path.join(WEIGHTS_DIR, f'std_{idx_str}.npy'))):
-            
-            compute_norm_params_mixed(indexes)
-            print(f'\nMean and std generated successfully for datasets {indexes} ...')
-            print(f'Location : /weights/mean_{idx_str}.npy')
-
-   
-    else:
-        if (not os.path.exists(os.path.join(WEIGHTS_DIR, f'mean_{idx_str}.npy'))
-                or not os.path.exists(os.path.join(WEIGHTS_DIR, f'std_{idx_str}.npy'))):
-            
-            compute_norm_params(indexes)
-            print(f'Mean and std generated successfully for dataset {indexes} ...')
-            print(f'Location : /weights/mean_{idx_str}.npy\n')
-
+    check_norm_params(idx_str, indexes, action=='mixed')
 
     print('Training started ...\n')
     train_neural(f'mean_{idx_str}.npy', f'std_{idx_str}.npy', indexes)
 
+
+def check_norm_params(idx_str, indexes, mixed=False):
+    if (not os.path.exists(os.path.join(WEIGHTS_DIR, f'mean_{idx_str}.npy'))
+                or not os.path.exists(os.path.join(WEIGHTS_DIR, f'std_{idx_str}.npy'))):
+
+        if mixed:
+            compute_norm_params_mixed(indexes)
+           
+        else:
+            compute_norm_params(indexes)
+
+    else:
+        while True:
+            recalculate = input('Recalculate mean and std (y , n) ? : ')
+            if recalculate in ('y', 'yes'):
+                if mixed:
+                    compute_norm_params_mixed(indexes)
+                else:
+                    compute_norm_params(indexes)
+                break
+            elif recalculate in ('n', 'no'):
+                break
+            else:
+                print('Wrong input , please enter "y" or "n"\n')
+                continue
+
+    print(f'\nMean and std generated successfully for datasets {indexes} ...')
+    print(f'Location : /weights/mean_{idx_str}.npy') 
 
 if __name__ == '__main__':
     main()

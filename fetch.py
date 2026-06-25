@@ -9,6 +9,9 @@ import time
 import os
 import contextlib
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'crypto_data.sqlite')
 
@@ -23,9 +26,10 @@ def load_api_key():
     with open(path, 'r') as file:
        headers = json.load(file)
 
+    if os.getenv('COINSTAT_API_KEY'):
+       headers['X-API-KEY'] = os.getenv('COINSTAT_API_KEY')
 
-
-    if headers["X-API-KEY"] == "YOUR_API_KEY_HERE":
+    elif headers["X-API-KEY"] == "YOUR_API_KEY_HERE":
         print("")
         print("Invalid API key. Please place a valid CoinStats API key in apikey.txt .")
         print("Program exiting ...")

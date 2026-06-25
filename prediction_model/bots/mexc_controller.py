@@ -7,35 +7,44 @@ import time
 import numpy as np
 import torch
 from neural_model import TinyNet, get_probabilities_mixed
+from bot_utils import (get_price_spot, get_price_futures, create_futures_order, 
+                       close_futures_order, handle_spot_order)
 
+from dotenv import load_dotenv
 
-
-import requests
 import logging
+
+load_dotenv()
+
+##### SET YOUR API KEY HERE ##########################################
+MEXC_SECRET = os.getenv('MEXC_SECRET') or 'YOUR_SECRET_KEY_HERE'
+MEXC_APIKEY = os.getenv('MEXC_APIKEY') or 'YOUR MEXC API KEY HERE'
+#######################################################################
+
 
 WEIGHTS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../', 'weights'))
 ROOTDIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../', '../'))
 LOGPATH = os.path.join(ROOTDIR, 'logs', 'mexc_bot.log')
+DBPATH = os.path.join(ROOTDIR, 'crypto_data.sqlite')
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename=LOGPATH, level=logging.INFO)
 
+
 class MexcMain():
     def __init__(self):
-        self.DBPATH = os.path.join(ROOTDIR, 'crypto_data.sqlite')
         self.row = None
-        self.weigths = None
         self.order_id = None
         self.last_price = None
-        self.mean = None
-        self.std = None
         self.good_trades = 0
         self.iter = 0
+        self.trade_futures = False
         self.bad_trades = 0
         self.good_score = 0
         self.bad_score = 0
         self.probability = None
-        self.SECRET_KEY = ''
-        self.APIKEY = ''
+        self.APIKEY = MEXC_APIKEY
+        self.SECRET_KEY = MEXC_SECRET
     
         self.last_open = None
         self.has_active_position = False
@@ -43,7 +52,7 @@ class MexcMain():
     @staticmethod
     def with_sqlite(fn):
         def wrapper(self, *args, **kwargs):
-           with sqlite3.connect(self.DBPATH, isolation_level=None) as conn:
+           with sqlite3.connect(DBPATH, isolation_level=None) as conn:
                 with contextlib.closing(conn.cursor()) as cur:
                     try:
                         return fn(self, cur, *args, **kwargs)
@@ -68,6 +77,7 @@ class MexcMain():
         for idx, w in enumerate(valid_weights):
             print(f'{idx}       {w}')
 
+        #### Choose a model #####
         print('\n-----------------------------\n')
         while True:
             weight = input('Choice : ')
@@ -78,6 +88,18 @@ class MexcMain():
                 break
             except:
                 print('Index is out of range , try again ...\n')
+                continue
+
+        #### Choose spot or futures #####
+        while True:
+            choice = input('Trade futures (f) or spot (s) ? : ')
+            if choice.strip().lower() == 'f':
+                self.trade_futures = True
+                break
+            if choice.strip().lower() == 's':
+                break
+            else:
+                print('Wrong choice , please enter "s" or "f"')
                 continue
 
         try:  
@@ -136,13 +158,13 @@ class MexcMain():
         return cur.fetchone()
 
     def main(self, weight_str):
-        weight_idx_str = weight_str.split('.')[0].split('w_')[1]
+        weight_idx_str = weight_str.split('_P')[0].split('w_')[1]
         elapsed2 = 0
         model = TinyNet()
         mean = np.load(os.path.join(WEIGHTS_DIR, f'mean_{weight_idx_str}.npy'))  ### shape (1, 10)
         std = np.load(os.path.join(WEIGHTS_DIR, f'std_{weight_idx_str}.npy'))    ### shape (1, 10)
         # 2. Load weights
-        model.load_state_dict(torch.load(os.path.abspath(os.path.join(WEIGHTS_DIR, f'w_{weight_idx_str}.pt'))))
+        model.load_state_dict(torch.load(os.path.abspath(os.path.join(WEIGHTS_DIR, weight_str))))
         model.eval()
 
         while True:
@@ -183,106 +205,78 @@ class MexcMain():
                     pos_str = 'Long' if long else 'Short'
                     self.has_active_position = False
                     print(f'{pos_str} closed : {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}')
-                else:
-                    try:
-                        body = [self.order_id]
-                        headers = get_headers(body , self.SECRET_KEY, self.APIKEY)
-                        json_str = json.dumps(body, separators=(',', ':'))
-                        res = requests.post('/api/v1/private/order/cancel' ,data=json_str, headers=headers)
-                        success = res.json().get('success', None)
+            
 
-                        if not success:
-                              print('\nWarning , the position could not be closed ! Requires immediate intervention\n')
-                        else:
-                            self.order_id = None
-
-                    except requests.exceptions.RequestException as e:
-                        logger.warning(f"could not cancel order by id : {e}")
+                if not success:
+                    print('\nWarning , the position could not be closed ! Requires immediate intervention\n')
+               
                 elapsed2 = time.monotonic() - start_time_cancel
 
 
 
     def make_request(self, long=False, close=False):
 
-        if not close:
+        if not close and self.trade_futures:
             side = 1 if long else 3
             
-        else:
+        elif close and self.trade_futures:
             side = 4 if long else 2
 
-        cross = 2
-        isolated = 1
         for _ in range(3):
-            if not close:
-                try:
-     
-                    res = requests.get('https://api.mexc.com/api/v1/contract/ticker?symbol=BTC_USDC')
 
-                    j_son = res.json()
-                    data = j_son.get('data', {})
-                    bid1 = float(data.get("bid1"))
-                    ask1 = float(data.get("ask1"))
+            if self.trade_futures:
 
-                    price = bid1 -5 if long else ask1 + 5
-                    success = j_son.get('success', None)
-              
-                    if not success :
+                if not close:
+                    price = get_price_futures(close)
+                    if not price:
                         logger.error(f'Fetching btc_usdc ticker failed, code : {data.get('code')} data: {data.get('data')}')
+                        time.sleep(1)
                         continue
 
-
-                except requests.exceptions.RequestException as e:
-                    logger.warning(f'\nThere was a problem when fetching index price : {e}\n')
-                    return None
-            
-                if price:
-                    try:
-                        ### 3.22 usdc per contracts , 6 contracts 19.2 usdc
-                        body = {'symbol': 'BTC_USDC', 'vol': 6,  'price': price , 
-                                'side': side, 'type': 1, 'openType': isolated, 'leverage': 2}
-                        
-                        json_str = json.dumps(body, separators=(',', ':'))
-
-                        headers = get_headers(body, self.SECRET_KEY, self.APIKEY)
-
-                        res = requests.post('https://api.mexc.com/api/v1/private/order/create', headers=headers, 
-                                            data=json_str)
-                        data = res.json()
-                        
-                       
-                        success = data.get('success', None)
-
-                        if success :
-                            self.order_id = data.get('data', {}).get('823514465458327680', None)
-                            
-                            return success
-                        else:
+                    order_id, data = create_futures_order(side, price, self.SECRET_KEY, self.APIKEY)
+                    if not order_id:
+                        if data:
                             logger.warning(f'Failed to place order, code : {data.get('code')} data: {data.get('data')}')
-                            continue
+                        time.sleep(1)
+                        continue
 
-                    except requests.exceptions.RequestException as e:
-                        print(f'\nThere was an error creating an order , balance might be insufficient: {e}\n')
+                    self.order_id = order_id
+                    return True
+
+                else:
+                    success = close_futures_order(self.SECRET_KEY, self.APIKEY, self.order_id)
+                    if not success:
+                        time.sleep(1)
+                        continue
+                    return success
+                
             else:
-                try: 
-                    body = {}
-                    headers = get_headers(body, self.SECRET_KEY, self.APIKEY)
-                    json_str = json.dumps(body, separators=(',', ':'))
-                    res = requests.post('https://api.mexc.com/api/v1/private/position/close_all', 
-                                        headers=headers, data=json_str)
-                    success = res.json().get('success', False)
+                if not close:
+                    price = get_price_spot()
+                    if not price:                
+                        logger.warning(f'\nThere was a problem when fetching index price :\n')
+                        time.sleep(1)
+                        continue    
 
-                    if success: 
-                        return success 
-                    else: 
-                       
+                    order_id, qty, data = handle_spot_order(self.SECRET_KEY, self.APIKEY, close, self.order_id, price)
+                    if not order_id:
+                        if data:                   
+                            logger.warning(f'Failed to place a spot order, code : {data.get('code')} data: {data.get('data')}')
+                        time.sleep(1)
                         continue
 
-                except requests.exceptions.RequestException as e:
-                        print(f'\nThere was an error closing all orders : {e}\n')
+                    self.qty = qty
+                    self.order_id = order_id
+                    return True              
+                    
+                else:
+                    success = handle_spot_order(self.SECRET_KEY, self.APIKEY, close, 
+                                                self.order_id, price, self.qty)
+                    if not success:
+                        time.sleep(1)
                         continue
 
-
-            time.sleep(5)
+                    return success
 
         return None
 
@@ -298,19 +292,24 @@ class MexcMain():
 
             succeeded = self.make_request(long=True)
             if not succeeded: 
-                print('Error placing a long ')
+                order_str = "a long" if self.trade_futures else 'a buy order'
+          
+                print(f'Error placing {order_str}')
                 
                 return None
             print(f'Long placed at : {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}')
 
-        elif self.probability <= 0.44:
+        elif self.trade_futures:
+            if self.probability <= 0.44:
 
-            succeeded = self.make_request(long=False)
-            if not succeeded: 
-                print('Error placing a short')
+                succeeded = self.make_request(long=False)
+                if not succeeded: 
+                    print('Error placing a short')
+                    return None
+
+                print(f'Short placed at : {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}')
+            else:
                 return None
-
-            print(f'Short placed at : {datetime.now().strftime("%d/%m/%Y, %H:%M:%S")}')
         else:
             return None
         
@@ -318,7 +317,8 @@ class MexcMain():
         self.last_open = datetime.now()
 
         return self.probability >= 0.56
-    
+
+
     def eval_score(self):
 
         if self.probability and self.probability > 0.56:
@@ -352,9 +352,9 @@ class MexcMain():
                        
            print(f'\nSummary :')
            print('----------------')
-           print(f'Trades won: {str(trades_won)} %')
+           print(f'Trades won: {str(trades_won)}%  Total trades: {self.bad_trades + self.good_trades} ')
            print(f'Lost :{self.bad_score}')
-           print(f'Earned :{self.good_score}')
+           print(f'Earned :{self.good_score}\n')
    
 
         self.iter += 1
@@ -366,34 +366,6 @@ class MexcMain():
 def start():
     controller = MexcMain()
     controller.startup_init()
-
-import hmac, hashlib, time, json
-
-def get_headers(body, secret, key):
-
-    timestamp, signature = sign_post(key, secret, body)
-    return {
-            "ApiKey": key,
-            "Request-Time": timestamp,
-            "Signature": signature,
-            "Content-Type": "application/json"
-                }
-
-def sign_post(api_key, secret_key, body_dict):
-    timestamp = str(int(time.time() * 1000))
-
-    # JSON string EXACTLY as sent
-    json_str = json.dumps(body_dict, separators=(',', ':'))
-
-    target = api_key + timestamp + json_str
-
-    signature = hmac.new(
-        secret_key.encode(),
-        target.encode(),
-        hashlib.sha256
-    ).hexdigest()
-
-    return timestamp, signature
 
 
 start()

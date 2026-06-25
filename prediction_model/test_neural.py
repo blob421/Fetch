@@ -87,7 +87,7 @@ def predict(index:str, filename:str, use_momentum=False) -> None:
                        
            print(f'\nSummary :')
            print('----------------')
-           print(f'Trades won: {str(trades_won)} %')
+           print(f'Trades won: {str(trades_won)} %   Total trades: {good+bad}')
            print(f'Lost :{preds.get('bad_diff')}')
            print(f'Earned :{preds.get('good_diff')}')
    
@@ -153,7 +153,7 @@ def main()-> None:
 
         index = file.split('_P')[0].split('w_')[1]
         print('\nStarting the inference process ....\n')
-        
+
         predict(index, file, use_momentum)
 
 if __name__ == '__main__': 

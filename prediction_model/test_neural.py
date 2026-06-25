@@ -38,67 +38,70 @@ def predict(index:str, filename:str, use_momentum=False) -> None:
 
         # 3. Load and preprocess the last row
         row_raw = load_last_row()                 # numpy array shape (10,)
-        data = np.array(row_raw[2:], dtype=float).reshape(1, -1)
-        standard = (data - mean) / std              # same normalization as training
+       
+        if not any(r is None for r in row_raw):
+    
+            data = np.array(row_raw[2:], dtype=float).reshape(1, -1)
+            standard = (data - mean) / std              # same normalization as training
 
-        row = torch.tensor(standard, dtype=torch.float32)
+            row = torch.tensor(standard, dtype=torch.float32)
 
-        # 4. Forward pass
-        with torch.no_grad():
-            pred = model(row)
+            # 4. Forward pass
+            with torch.no_grad():
+                pred = model(row)
 
-        result = pred.item()
-        if use_momentum and action_mean > 0 and action_std > 0:
-            sig = amplify_sig(float(result), action_mean, action_std, needs_big_multipler)
-            
-        else:
-            sig = float(result)
-
-        if last_pred and last_pred > 0.56:
-           if last_price < row_raw[2]:
-               preds['good_diff'] += abs(row_raw[2] - last_price)
-         
-               preds['good'] += 1
-           else:
-               preds['bad_diff'] += abs(row_raw[2] - last_price)
-               preds['bad'] += 1
-
-
-        elif last_pred and last_pred < 0.44 :
-
-            if last_price > row_raw[2]:
-                preds['good_diff'] += abs(row_raw[2] - last_price)
-
-                preds['good'] += 1
+            result = pred.item()
+            if use_momentum and action_mean > 0 and action_std > 0:
+                sig = amplify_sig(float(result), action_mean, action_std, needs_big_multipler)
+                
             else:
-                preds['bad_diff'] += abs(row_raw[2] - last_price)
-                preds['bad'] += 1
+                sig = float(result)
+
+            if last_pred and last_pred > 0.56:
+                if last_price < row_raw[2]:
+                    preds['good_diff'] += abs(row_raw[2] - last_price)
+                
+                    preds['good'] += 1
+                else:
+                    preds['bad_diff'] += abs(row_raw[2] - last_price)
+                    preds['bad'] += 1
+
+
+            elif last_pred and last_pred < 0.44 :
+
+                if last_price > row_raw[2]:
+                    preds['good_diff'] += abs(row_raw[2] - last_price)
+
+                    preds['good'] += 1
+                else:
+                    preds['bad_diff'] += abs(row_raw[2] - last_price)
+                    preds['bad'] += 1
+                
+            last_pred = sig
+            last_price = row_raw[2]
+                        
+            if iter > 0 and iter % 10 == 0:
+                good = preds.get('good', 0)
+                bad = preds.get('bad', 0) 
             
-        last_pred = sig
-        last_price = row_raw[2]
-                       
-        if iter > 0 and iter % 10 == 0:
-           good = preds.get('good', 0)
-           bad = preds.get('bad', 0) 
-     
-           trades_won = (good / (bad + good)  * 100 ) if bad > 0 and good > 0 else 0 
-           
+                trades_won = (good / (bad + good)  * 100 ) if bad > 0 and good > 0 else 0 
+                
 
-                       
-           print(f'\nSummary :')
-           print('----------------')
-           print(f'Trades won: {str(trades_won)} %   Total trades: {good+bad}')
-           print(f'Lost :{preds.get('bad_diff')}')
-           print(f'Earned :{preds.get('good_diff')}')
-   
+                            
+                print(f'\nSummary :')
+                print('----------------')
+                print(f'Trades won: {str(trades_won)} %   Total trades: {good+bad}')
+                print(f'Lost :{preds.get('bad_diff')}')
+                print(f'Earned :{preds.get('good_diff')}')
+        
 
-        iter += 1
-  
+                
+            ### Only is last row was valid , else conn was probably down
+            action_mean, action_std = calculate_mean_action() 
+
+            iter += 1
 
         print(f"Probability of BTC going up:  {sig * 100}%")
-
-        action_mean, action_std = calculate_mean_action()
-
         delta_mono = max(0, time.monotonic() - start_mono)
         
         time.sleep(300 - delta_mono)

@@ -225,7 +225,7 @@ async def fetch_marketdata():
            marketCapChange = data.get("marketCapChange") if data else None    
            volumeChange = data.get("volumeChange") if data else None
            btcDominanceChange = data.get("btcDominanceChange") if data else None
-           date = date_time
+           date = date_time.isoformat()
  
     except json.JSONDecodeError as e:
        print(f"{date_time} 'None' values registered (market): {e}")
@@ -356,7 +356,7 @@ async def fetch_coindata(url: str, coin: str, table_name: str):
     print(f"{date_time} 'None' values registered {coin} : {e}")
     pass
  
- date = date_time
+ date = date_time.isoformat()
      
  try:
   
@@ -656,10 +656,10 @@ def startup_init():
 
     finally: 
         if seconds_to_wait > 0:
-           print(f'Starting in {seconds_to_wait} seconds ...')
+           print(f'\nStarting in {seconds_to_wait} seconds ...')
 
         time.sleep(seconds_to_wait)
-        print("Starting ...")
+        print("\nStarting ...")
     
         asyncio.run(main())
 
